@@ -14,3 +14,16 @@ by Marko Luksa
   - declaritive deployment
   - dedicated scheduler provides better resource usage -- users don't worry about where the pods are deployed
   - monitoring & auto healing
+
+#### Ch 2: First steps with Docker and Kubernetes
+- Minikube: when installed locally, it runs a single node k8s cluster in a VM. Often used for local development.
+- Some useful kubectl commands:
+  - `cluster-info`
+  - `get (node, pods) -o wide`
+  - `describe node <xx>` (name of the node optional)
+  - `run`
+  - `expose <resource: po, svc, rc, deploy, rc> <resource_name>`
+  - `scale rc <rc_name> --replicas=<num>`
+- Pod: a group of tightly related containers that always gets deployed on the same logical host (worker node and linux namespace).
+- ReplicationController: ensures the number of pod replicas are met by starting and terminating pods.
+- Service: exposing multiple pods at a single static ip:port pair when pods come and go.
