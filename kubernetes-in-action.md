@@ -48,5 +48,6 @@ by Marko Luksa
   - `get <resource> -n <namespace>`: specify namespace
   - `config set-context $(kubectl config current-context) --namespace <ns_name>`: switch to a new namespace
   - `delete po <pod1 pod2> (-l <label selectors>) (--all)`
+  - `exec -it <pod> (-c <container>) -- bash` or `exec <pod> <command>`
 - Namespace: split resources into multiple non-overlapping groups, and operate within one group at a time. Cluster-level resources like node is not tied to a namespace.
   
