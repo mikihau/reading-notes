@@ -20,7 +20,7 @@ by Marko Luksa
 - Pod: a group of tightly related containers that always gets deployed on the same logical host (worker node and linux namespace).
 - ReplicationController: ensures the number of pod replicas are met by starting and terminating pods.
 - Service: exposing multiple pods at a single static ip:port pair when pods come and go.
-- Some useful kubectl commands:
+- Some useful kubectl commands (prefix each with `kubectl`):
   - `cluster-info`
   - `get (node, pods) -o wide (--show-labels) (-a)`: see more details (`-o yaml` for yaml config)
   - `describe node <xx>` (name of the node optional)
@@ -46,10 +46,10 @@ by Marko Luksa
   - `label <resource> <name> <label>=<value> (--overwrite)`: set overwrite to change labels
   - `get po -l '(!)<label>(=<value>)',<more criteria>`: selecting labels -- also `!<value>`, `<label> (not)in (<val1>,<val2>)`
   - `annotate <obj> <obj_name> <org>/<annotation_key>=<value>`
-  - `get <resource> -n <namespace>`: specify namespace
+  - `get <resource> -n <namespace> (--all-namespaces)`: specify namespace
   - `config set-context $(kubectl config current-context) --namespace <ns_name>`: switch to a new namespace
   - `delete po <pod1 pod2> (-l <label selectors>) (--all)`
-  - `exec -it <pod> (-c <container>) -- bash` or `exec <pod> <command>`
+  - `exec -it <pod> (-c <container>) bash` or `exec <pod> -- <command>`: '--' required if command has dashed args
 
 #### Ch 4: Replication and other controllers: deploying managed pods
 - The Kubelet on the node hosting a pod checks the liveness probe for the pod to decide if the pod is healthy. Use `describe` for restart details.
@@ -62,3 +62,15 @@ by Marko Luksa
 - Commands:
   - `edit rc <name>`: opens up the yaml definition file. Change will be applied immediately upon saving the file.
   - `delete rc <name> --cascade=false`: deleting a rc without deleting the pods it manages
+
+#### Ch 5: Services: enabling clients to discover and talk to pods
+- Port can be named with pods, and services can reference these port names, so that when pod changes ports, services doesn't have to be changed also.
+- A Service's cluster-ip can only be accessed from within the cluster (nodes, other pods etc). However other pods can discover services' IP and port from env vars (prefixed by the service name), or IP through internal dns (`<service-name>(.<namespace>)`).
+- A Service can be headless if its cluster ip is set to None, and it will return all ready pod endpoints instead in a dns lookup (`nslookup <service_name>(.<namespace>)`).
+- A Service can be created to connect to ip:ports outside the cluster, for pods to consume. This can be done by creating the service without a label selector, and manaully creating the Endpoints resource to the service. Alternatively it can be done by creating a `ExternalName` type of service, which is just a `CNAME` alias.
+- To expose a service to external traffic (outside the cluster), can open a NodePort type of service that opens the same port of each node for external access. As an extension, a loadblancer can be set up fronting a single ip and rounting requests to different nodes. Client IP is not preserved to pods unless `externalTrafficPolicy: Local` is set up to disable that additional network hop.
+- Ingress: a service can also be exposed through an Ingress resource (implementation depending on platform). An Ingress works on L7, and can be configured to route multiple domain names and paths to different services (DNS configuration needed on the client side), by looking up the service's endpoints and pass the request to a pod. It can also be configured to accept TLS traffic.
+- Pods should have a readiness probe signaling whether it's ready to accept connections (at the start and during its lifetime). If a pod is not ready, it's not included in the service's endpoints.
+- Commands:
+  - `apply -f <file or url to file>`: the declarative way of configuring resources
+  - `run <pod-name> --image=<> --generator=run-pod/v1 --command -- <command>`: run an ad hoc pod
