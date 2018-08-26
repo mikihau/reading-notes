@@ -74,3 +74,13 @@ by Marko Luksa
 - Commands:
   - `apply -f <file or url to file>`: the declarative way of configuring resources
   - `run <pod-name> --image=<> --generator=run-pod/v1 --command -- <command>`: run an ad hoc pod
+
+#### Ch 6: Volumes: attaching disk storage to containers
+- Volume: volumes is the way to share data among containers in the same pod. A volume is a subresource of pod, so it exists while the pod lives -- data might be able to get persisted depending on the volume's type.
+  - Data for `emptyDir` and `gitRepo` volumes is lost when the pod terminates.
+  - Data for `hostPath` volumes gets persisted on the node.
+  - Can use external network-attached file systems for persistent data, which include storage services provided by cloud providers, nfs and so on.
+- PersistentVolume(`pv`): a cluster-level resource (not namespaced). PV is a resource administered by cluster admins to decouple storage technology and app developers -- thus making the manifests universial to other K8s clusters. Access modes: ReadWriteOnce, ReadOnlyMany, ReadWriteMany (number of nodes).
+-PersistentVolumeClaim(`pvc`): a developer can create a pvc, which bounds a pv by matching the required size and access mode of available pvs. Pods can then mount those pvcs. After pvcs are deleted, the underlying pvs can get recycled (data deleted and back to the pool), deleted, or retained (waiting for admin to take action).
+- StorageClass(`sc`): another cluster level resource. a cluster might have different classes of storage with different characters and performance. A cluster admin can create scs, each attached to a provisioner, to auto provision pvs when pvcs come in. In the pvc, the dev can specify which sc the app wants to have.
+- Use `storageClassName` to specify the sc. If key `storageClassName` doesn't exist, a default sc will be used. If `storageClassName` is set to an empty string, a pre-provisioned pv will be used.  
