@@ -17,9 +17,9 @@ by Marko Luksa
 
 #### Ch 2: First steps with Docker and Kubernetes
 - Minikube: when installed locally, it runs a single node k8s cluster in a VM. Often used for local development.
-- Pod: a group of tightly related containers that always gets deployed on the same logical host (worker node and linux namespace).
-- ReplicationController: ensures the number of pod replicas are met by starting and terminating pods.
-- Service: exposing multiple pods at a single static ip:port pair when pods come and go.
+- Pod(`po`): a group of tightly related containers that always gets deployed on the same logical host (worker node and linux namespace).
+- ReplicationController(`rc`): ensures the number of pod replicas are met by starting and terminating pods.
+- Service(`svc`): exposing multiple pods at a single static ip:port pair when pods come and go.
 - Some useful kubectl commands (prefix each with `kubectl`):
   - `cluster-info`
   - `get (node, pods) -o wide (--show-labels) (-a)`: see more details (`-o yaml` for yaml config)
@@ -36,7 +36,7 @@ by Marko Luksa
 - Behaving like physical hosts, each pod gets an IP address to communicate, regardless of which node it gets assigned onto.
 - Label: arbitrary key-value pairs attached to k8s resources to organize them.
 - Annotation: also key-value pairs to objects, but can't be grouped or selected
-- Namespace: split resources into multiple non-overlapping groups, and operate within one group at a time. Cluster-level resources like node is not tied to a namespace.
+- Namespace(`ns`): split resources into multiple non-overlapping groups, and operate within one group at a time. Cluster-level resources like node is not tied to a namespace.
 - Commands:
   - `explain pods(.<section>)`: lists (subsections of) attributes an object can contain
   - `create -f <filename> (-n <namespace>)`: create pod using the given manifest
@@ -55,10 +55,10 @@ by Marko Luksa
 - The Kubelet on the node hosting a pod checks the liveness probe for the pod to decide if the pod is healthy. Use `describe` for restart details.
 - A ReplicationController needs 3 things for its operations: number of replicas, a selector, and a template to bring up new instances. Changing the template does not affect existing pods.
 - A pod is not tied to a rc because rc works by taking lable selections. But a pod's `metadata.ownerReferences` field contains rc info if its managed by an rc.
-- ReplicaSet: a ReplicaSet acts just like a ReplicationController, but newer and with more expressive pod selectors.
-- DaemonSet: a DaemonSet makes sure exactly 1 pod is running on each node (or a subset of nodes using a node selector).
+- ReplicaSet(`rs`): a ReplicaSet acts just like a ReplicationController, but newer and with more expressive pod selectors.
+- DaemonSet(`ds`): a DaemonSet makes sure exactly 1 pod is running on each node (or a subset of nodes using a node selector).
 - Job: a Job is a manager like ReplicaSet, but for short-lived jobs. Restart policy, number of completions, parallelism and time allowed for a pod to complete(`activeDeadlineSeconds`) can be configured.
-- CronJob: a CronJob is a job scheduled to run in the future. Make sure it's idempotent in case the 2 of the jobs get started at the same time.
+- CronJob(`cj`): a CronJob is a job scheduled to run in the future. Make sure it's idempotent in case the 2 of the jobs get started at the same time.
 - Commands:
   - `edit rc <name>`: opens up the yaml definition file. Change will be applied immediately upon saving the file.
   - `delete rc <name> --cascade=false`: deleting a rc without deleting the pods it manages
@@ -84,3 +84,19 @@ by Marko Luksa
 -PersistentVolumeClaim(`pvc`): a developer can create a pvc, which bounds a pv by matching the required size and access mode of available pvs. Pods can then mount those pvcs. After pvcs are deleted, the underlying pvs can get recycled (data deleted and back to the pool), deleted, or retained (waiting for admin to take action).
 - StorageClass(`sc`): another cluster level resource. a cluster might have different classes of storage with different characters and performance. A cluster admin can create scs, each attached to a provisioner, to auto provision pvs when pvcs come in. In the pvc, the dev can specify which sc the app wants to have.
 - Use `storageClassName` to specify the sc. If key `storageClassName` doesn't exist, a default sc will be used. If `storageClassName` is set to an empty string, a pre-provisioned pv will be used.  
+
+#### Ch 7: ConfigMaps and Secrets: configuring applications
+- To pass command arguments in a docker container, use `ENTRYPOINT` to define the script, and `CMD` for the default args. The exec form is preferred (e.g. `ENTRYPOINT ["node", "app.js"]`) because the main process (PID=1) is the script, not the shell. In k8s container configs, use `command` and `args` to override the container's `ENTRYPOINT` and `CMD`.
+- For env vars, define a `env` section for each container in a pod. Use `$(VAR)` to refer to other env vars in the value definition.
+- To use values in cms as env vars, use either:
+  - `pod.spec.containers.env.valueFrom.configMapKeyRef.name/key` to reference a single k/v pair
+  - `pod.spec.containers.envFrom.configMapRef` to expose all k/v pairs as env vars, with an optional prefix
+- ConfigMap(`cm`): cm entries can be exposed as `configMap` type of volume to get mounted into pod's containers. Can select a subset of entries (and where they're mounted to) by defining `configMap.items`. The `subPath` property can be used to unhide existing files in a dir when a file is mounted (but loses the ability to receive file updates).
+- When mounting cm as a volume, the mounted files gets updated a while (~1min) after `kubectl edit cm <name>`.
+  - For a pod, the volume gets updated atomically because the underlying implementation uses the symbolic link.
+  - Not all pods receive the update at the same time, so there could be lags.
+  - Files mount into existing dirs won't get the update.
+- Secret: mostly same idea with cm, but when mounted, they're stored in memory and distributed carefully by k8s. It's recommended to mount the secret as a volume because env vars may get exposed unexpectedly. There are many types of them, including `generic`, `tls`, and `docker-registry`.
+- Commands:
+  - `create cm <name> --from-literal=<key>=<val> from-file(=<custom_keyname>)=<file/dir>`: create ConfigMap with strings, files and directories
+  - `create secret <type> <name> --from-...`: create secret with specific type
