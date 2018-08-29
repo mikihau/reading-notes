@@ -100,3 +100,17 @@ by Marko Luksa
 - Commands:
   - `create cm <name> --from-literal=<key>=<val> from-file(=<custom_keyname>)=<file/dir>`: create ConfigMap with strings, files and directories
   - `create secret <type> <name> --from-...`: create secret with specific type
+
+#### Ch 8: Accessing pod metadata and other resources from applications
+- Pod metadata can be exposed in 2 ways:
+  - through env vars by defining env vars in `spec.containers.env.valueFrom.fieldRef.fieldPath` in the manifest, or `spec.containers.env.valueFrom.resourceFieldRef.resource` and `divisor` (for resource requests/limits). Labels and annotations can't be gotten through env vars because they change.
+  - through the `downwardAPI` volume, allowing containers in the same pod to access other container's values. Container-level metadata (e.g.resources) needs to specify the container's name.
+- The kubernetes API can be explored locally by proxying and then hit `http://localhost:8001`, or through the UI dashboard.
+- 3 ways o talk to the API server from within a pod:
+  1. Directly use the cert and token provided in the mounted secret volume at `/var/run/secrets/kubernetes.io/serviceaccount`:
+    - `export CURL_CA_BUNDLE=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt`: this verifies the API server is signed by certified authority
+    - then `curl -H "Authorization: Bearer $TOKEN" https://kubernetes` to authenticate itself by setting the Auth header
+  2. These steps can be delegated to an ambassador container running in the same pod (and proxying), so the main container can just access localhost:8001.
+  3. By using a language specific client library.
+- Commands:
+  - `proxy`: runs a proxy server that accepts HTTP connections on local machine, and proxies that to the API server
