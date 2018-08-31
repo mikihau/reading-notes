@@ -73,6 +73,7 @@ by Marko Luksa
 - Pods should have a readiness probe signaling whether it's ready to accept connections (at the start and during its lifetime). If a pod is not ready, it's not included in the service's endpoints.
 - Commands:
   - `apply -f <file or url to file>`: the declarative way of configuring resources
+  - `replace -f <file or url to file>`: the imperative way of editing resources; expects the resource to exit already
   - `run <pod-name> --image=<> --generator=run-pod/v1 --command -- <command>`: run an ad hoc pod
 
 #### Ch 6: Volumes: attaching disk storage to containers
@@ -114,3 +115,27 @@ by Marko Luksa
   3. By using a language specific client library.
 - Commands:
   - `proxy`: runs a proxy server that accepts HTTP connections on local machine, and proxies that to the API server
+
+#### Ch 9: Deployments: updating applications declaratively
+- `Rolling-update` works by first adding additional label to pods, and changing the label selector of the rc, then creating a new rc, creating new pods of new versions, delete the old rc, and changing the pod labels back. This is bad because:
+  - Changing labels for the user leads to confusion.
+  - Under the hood commands are issued by the client so loss of connectivity may be an issue.
+  - The command is imperative (not declarive).
+- The Deployment resource is a higher level resource than rs/rc, because it coordinates different rs-es during rollouts.
+- Changing the pod template in the Deployment resources triggers a rollout, causing it to `RollingUpdate` (or `Recreate` by configurating the strategy) the rs and pods to a new version.
+  - Modifying a pod template's ConfigMap won't trigger a rollout; to do it you need to create a new cm and have the template refer to this new cm.
+  - After a rollout of a new version, the old rs is kept in case of an undo (can set `revisionHistoryLimit` for a deployment).
+- There are 2 variables to controll the pace/rate of a rollout -- both can be numbers or percentages.
+  - `maxSurge`: num of pods (rounds up) to exist above the desired replica count.
+  - `maxUnavailable`: num of pods (rounds down) unavailable below the desired replica count (not below the number of pods for all created).
+- A deployment can be paused and resumed halfway during a rollout to create a canary release (a portion of pods is new) or to delay a rollout after making multiple changes.
+- Bad versions can be prevented by:
+  - Setting a good `readinessProbe` for containers and a high `minReadySeconds` for the deployment, which says a container is considered ready only if probe is successful throughout this many seconds. So if the new pod fails during this window, the deployment is blocked because the new pod is not considered ready.
+  - Setting a rollout deadline in case the rollout isn't making good progress -- doesn't auto abort though.
+- Use 3 dashes in between resource definitions in a single yaml file.
+- Commands:
+  - `rolling-update <rc1> <rc2> --image=<>`: (outdated) command to update an app directly through rcs
+  - `rollout status/history/pause/resume/undo deployment <name> (--to-revision=<version_num>)`: make an action on a higher level resource (deployments, daemonsets, statefulsets)
+  - `patch <resource> <name> -p '{<json data>}'`: modify a single property without editing the file
+  - `set image <resource> <name> <container_name>=<image_name>:<image_tag>`: modifies the image of any resource containing a container
+  - `<command> --v=<level_number>`: increase the logging level of the command
