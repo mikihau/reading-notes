@@ -74,7 +74,7 @@ by Marko Luksa
 - Commands:
   - `apply -f <file or url to file>`: the declarative way of configuring resources
   - `replace -f <file or url to file>`: the imperative way of editing resources; expects the resource to exit already
-  - `run <pod-name> --image=<> --generator=run-pod/v1 --command -- <command>`: run an ad hoc pod
+  - `run <pod-name> --image=<> --generator=run-pod/v1 --rm --restart=Never -- <command>`: run an ad hoc pod
 
 #### Ch 6: Volumes: attaching disk storage to containers
 - Volume: volumes is the way to share data among containers in the same pod. A volume is a subresource of pod, so it exists while the pod lives -- data might be able to get persisted depending on the volume's type.
@@ -139,3 +139,17 @@ by Marko Luksa
   - `patch <resource> <name> -p '{<json data>}'`: modify a single property without editing the file
   - `set image <resource> <name> <container_name>=<image_name>:<image_tag>`: modifies the image of any resource containing a container
   - `<command> --v=<level_number>`: increase the logging level of the command
+
+#### Ch 10: StatefulSets: deploying replicated stateful applications
+- `StatefulSet`: a StatefulSet maintains a set of pods so that each pod retains identity (name, hostname, network identity, other state) when it dies. Each pod can have it's own volumes.
+  - pods addressed ordinally (pod-0, pod-1, pod-2 etc) -- when scaled down, the larger ones gets deleted
+  - a headless service providing network identity for each pod for peer discovery (available in dns)
+- Pods in a StatefulSet are boot up one at a time and killed one at a time (no scaling down when 1 pod unhealthy) because some stateful apps doesn't handle this well (e.g. 2 nodes storing replications get killed at the same time)
+- When creating a StatefulSet, pvc templates go with pod templates so that each pod can get its own pvc. When pods are scaled down, the pvc are retained to prevent loss of data.
+- We can also use a `List` kind of definition to specify multiple k8s resources in the same file.
+- Ways to talk to a pod directly: execute curl commands in another pod, port forwarding, proxying and curl the api.
+- Peer discovery can be done with a DNS SRV lookup to the headless services -- it'll return all pod addresses backing up the service.
+- A statefulset gets a rollout in newer k8s versions. In older versions when the config file changes, old pods needs to be deleted manually for the change to take effect.
+- When a node has network failure, k8s shows the pods there as unknown -- the pod might still be running, but the kubelet can't be contacted. After some time the pods gets forcibly evicted, but the origional pod can be back when the network issue goes away. Can forcibly delete a pod, but do that only when you know the node never comes back again.
+- Commands:
+  - `delete po <name> --force --grace-period 0`: forcibly deletes a pod without confirming the pod is actually running
