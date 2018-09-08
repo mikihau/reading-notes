@@ -46,7 +46,7 @@ by Marko Luksa
   - `label <resource> <name> <label>=<value> (--overwrite)`: set overwrite to change labels
   - `get po -l '(!)<label>(=<value>)',<more criteria>`: selecting labels -- also `!<value>`, `<label> (not)in (<val1>,<val2>)`
   - `annotate <obj> <obj_name> <org>/<annotation_key>=<value>`
-  - `get <resource> -n <namespace> (--all-namespaces)`: specify namespace
+  - `get <resource> -n <namespace> (--all-namespaces) (--watch)`: specify namespace and watch for modifications
   - `config set-context $(kubectl config current-context) --namespace <ns_name>`: switch to a new namespace
   - `delete po <pod1 pod2> (-l <label selectors>) (--all)`
   - `exec -it <pod> (-c <container>) bash` or `exec <pod> -- <command>`: '--' required if command has dashed args
@@ -121,7 +121,7 @@ by Marko Luksa
   - Changing labels for the user leads to confusion.
   - Under the hood commands are issued by the client so loss of connectivity may be an issue.
   - The command is imperative (not declarive).
-- The Deployment resource is a higher level resource than rs/rc, because it coordinates different rs-es during rollouts.
+- The Deployment(`deploy`) resource is a higher level resource than rs/rc, because it coordinates different rs-es during rollouts.
 - Changing the pod template in the Deployment resources triggers a rollout, causing it to `RollingUpdate` (or `Recreate` by configurating the strategy) the rs and pods to a new version.
   - Modifying a pod template's ConfigMap won't trigger a rollout; to do it you need to create a new cm and have the template refer to this new cm.
   - After a rollout of a new version, the old rs is kept in case of an undo (can set `revisionHistoryLimit` for a deployment).
@@ -153,3 +153,37 @@ by Marko Luksa
 - When a node has network failure, k8s shows the pods there as unknown -- the pod might still be running, but the kubelet can't be contacted. After some time the pods gets forcibly evicted, but the origional pod can be back when the network issue goes away. Can forcibly delete a pod, but do that only when you know the node never comes back again.
 - Commands:
   - `delete po <name> --force --grace-period 0`: forcibly deletes a pod without confirming the pod is actually running
+
+### Part 3: Beyond the basics
+
+#### Ch 11: Understanding Kubernetes internals
+- A k8s cluster is split in 2 parts:
+  - the Control Plane (on master node): etcd persistent storage, the API server, the scheduler, the controller manager
+  - the worker nodes: the kubelet(the only component that can't be in a pod), kube-proxy, container runtime (docker etc)
+  - add-ons: k8s dns server, dashboard, a ingress controller, heapster, container network interface (network plugin)
+- etcd: key-value store used to persist manifests, cluster state and metadata. Can be more than 1 instance. Only talks to the API server.
+  - Ensures data valid by optimistic locking and forcing all actions through the API server (also checks authorization).
+  - Ensures consistency (multiple instances) by RAFT consensus algo so that majority can change the state.
+- API server: CRUD interface to cluster state. Handles data validation and optimistic locking. `Kubectl` is a client. Requests go through configured plugins:
+  - Authentication: plugins gets called in turn until the user (group) is decided.
+  - Authorization: plugins decide if the user is authorized to do that operation.
+  - Admission control: plugins modify the resource, e.g. adding labels, missing defaults etc -- used only when modifying state.
+- A component or API client can request to watch a resource when it's changed -- changes are streamed by the API server.
+- Scheduler: the scheduler assigns a node to each new pod, and change its metadata. The nodes are watching the change so they know as soon as it's scheduled. Can deploy multiple schedulers (pod needs to say what scheduler) or none (schedule manually). The default scheduling algorithm:
+  - Filtering eligible nodes by node resource, pod preference (node name/label match), volume, taints, affinity, already taken host ports.
+  - Then select the best node by some ranking policy.
+- Controllers: reconcile the desired state and actual state by watching the states of resources, do stuff and update their status -- also periodically relisting info. They do stuff by talking to the API server to manipulate resources a level lower than them.
+- Kubelet: responsible for registering the node resource when started, create and delete pods by the watch mechanism or a local file dir (running k8s components as pods), monitors pod states+events+resource consumptions and report them (probes, restarts).
+-Kubernetes Service Proxy(kube-proxy): makes sure connections at node:port ends up in the backing pod (or a random pod if multiple are present). It has 2 modes: userspace proxy mode and iptables proxy mode.
+- Add-ons
+  - kube-dns: a service (as pod) whose ip is written to `/etc/resolv.conf` file of any deployed container.
+  - Ingress: usually implemented as a reverse proxy, and watch services and endpoints -- proxies things directly into pods (not service ip) so that the ip of clients are preserved.
+- Each pod has a infrastructural container containing linux namespaces.
+- Communication between pods and pods and nodes need to be NAT-less (no network address translation). But the source ip becomes the node ip when packets go out of the cluster. Implementations of Container Network Interface (CNI) should be deployed as plugins into all cluster nodes.
+- Services are handled by kube-proxies on nodes. When pod A send a packet to a service (ip:port), kube-proxy on pod A's node rewrites the ip:port pair to a randomly selected pod backing the service with the iptable rules -- service's ip:port is virtual so the ip itself doesn't mean anything. That's why a service can't be pinged.
+- To make apps highly available, deploy multiple replicas, or set up leader-followers/active-passives.
+- To make k8s itself highly available, deploy multiple masters and multiple instances of each of the 4 components in master. Etcd is designed as distributed, API server doesn't hold state (but needs to be fronted by an lb), scheduler and controller master needs to select a leader and run active-passive.
+- Commands:
+  - `get componentstatuses`: view the health of each controll plane component
+  - `attach`: attaches to the main process of a container
+  - `get events --watch`
