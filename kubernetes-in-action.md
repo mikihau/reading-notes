@@ -47,7 +47,7 @@ by Marko Luksa
   - `get po -l '(!)<label>(=<value>)',<more criteria>`: selecting labels -- also `!<value>`, `<label> (not)in (<val1>,<val2>)`
   - `annotate <obj> <obj_name> <org>/<annotation_key>=<value>`
   - `get <resource> -n <namespace> (--all-namespaces) (--watch)`: specify namespace and watch for modifications
-  - `config set-context $(kubectl config current-context) --namespace <ns_name>`: switch to a new namespace
+  - `config set-context $(kubectl config current-context) --namespace(-n) <ns_name>`: switch to a new namespace
   - `delete po <pod1 pod2> (-l <label selectors>) (--all)`
   - `exec -it <pod> (-c <container>) bash` or `exec <pod> -- <command>`: '--' required if command has dashed args
 
@@ -187,3 +187,15 @@ by Marko Luksa
   - `get componentstatuses`: view the health of each controll plane component
   - `attach`: attaches to the main process of a container
   - `get events --watch`
+
+#### Ch 12: Securing the Kubernetes API server
+- Clients of the API includes both human users, managed by external mechanisms like sso, and applications running in pods.
+- The authentication plugins are called in order until one of them returns the username, user id and group name (the rest of the plugins are skipped). The plugins determine the username etc by examining the client certificate, auth token (HTTP header), basic auth and others.
+- ServiceAccount (`sa`): a namespaced resource for authentication used by pods. Each pod has 1 sa, but multiple pods can share (default to 1 sa per , token mounted at `/var/run/secrets/kubernetes.io/serviceaccount/token`). The default sa is called `<ns_name>:default`.
+- Both users and sa's are associated with groups.
+- Authorization plugins handle things an sa can or can't do. 
+- Role: namespaced resource defining what verbs (get, list, create etc) can be used in the api.
+- RoleBinding: namespaced resource associating a single Role with user(s), sa(s), group(s) -- can associate people outside the ns.
+- ClusterRole: roles for resources not namespaced, and apis that doesn't represent resources (e.g. `/healthz`). It can also serve as a common role in all namespaces -- if its resource sections refers to any namespaced resources, it depends on whether the binding is RoleBinding or ClusterRoleBinding.
+- ClusterRoleBinding: associates a ClusterRole with users/sa's/groups.
+- K8s comes with a set of default ClusterRoles and ClusterRoleBindings. Some key ClusterRoles include `view`, `edit`, `admin` and `cluster-admin`.
