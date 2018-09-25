@@ -199,3 +199,6 @@ by Marko Luksa
 - ClusterRole: roles for resources not namespaced, and apis that doesn't represent resources (e.g. `/healthz`). It can also serve as a common role in all namespaces -- if its resource sections refers to any namespaced resources, it depends on whether the binding is RoleBinding or ClusterRoleBinding.
 - ClusterRoleBinding: associates a ClusterRole with users/sa's/groups.
 - K8s comes with a set of default ClusterRoles and ClusterRoleBindings. Some key ClusterRoles include `view`, `edit`, `admin` and `cluster-admin`.
+
+#### Ch 13: Securing cluster nodes and the network
+- A pod can use the host's namespace in a couple of ways: using host's network namespace(`spec.hostNetwork: true`), binding to host's port(`spec.containers.ports.hostPort: <port_num>`), and using host's PID(see processes running on the host)/IPC(communicate with other processes on the host) namespaces(`spec.hostPID/hostIPC: true`).
