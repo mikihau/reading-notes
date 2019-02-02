@@ -1,3 +1,31 @@
+## Designing Data-Intensive Applications: The Big Ideas Behind Reliable, Scalable, and Maintainable Systems
+
+by Martin Kleppmann
+
+### Part 1: Foundations of Data Systems
+
+#### Ch 1: Reliable, Scalable, and Maintainable Applications
+- Some trends for today's data systems:
+     - New tools for data storage and processing blurs the boundaries of traditional databases, e.g. Redis, Kafka.
+     - Each application is architectured as a conglomerate of components, each with a specific purpose, e.g. db + cache + search index + message queue.
+- Reliability
+     - Meaning the system continues to work correctly even in the presence of faults (fault tolerant, resilient).
+     - Hardware faults: disk failures are super common in large data centers. Solution is usually data redundency.
+     - Software errors: leap seconds, slow/unresponsive dependent/upstream service, cascading failures. No magic solution, but can do testing/monitoring/self checking assumptions at runtime.
+     - Human errors: usually misconfig. Solutions include designing the system carefully, using sandboxes, adopting good operational procedure/tools (e.g. quick rollback), monitoring and telemetry.
+     - Practical tip: to exercise the system for reliability we could do chaos engineering -- introduce faults manually.
+- Scalability
+     - The system's ability to deal with increased load, with some definition of "load" -- differ by individual cases.
+     - Performance is usually discribed by a distribution.
+          - In SLAs performance usually use percentiles: the 50, 90, 99, 99.9th percentile of response times.
+          - Long queues of requests often slow down performance significantly -- head-of-line blocking.
+          - The tails are important because a page's performance is dominated by the slowest responding concurrent request.
+     - We can scale up and scale out (stateless apps usually easier to scale out), but there's no magic sauce -- the scalable architecture depends on the volume of read and writes, access patterns, data complexity and performance requirements.
+- Maintainability
+     - Operability: provide observability to internal states/metrics, minimize surprises in behavior, design with portability.
+     - Simplicity: use proper abstraction to avoid accidental complexity.
+     - Evolvability: anticipate future changes, and be extensible to architecture-level changes.
+
 Chapter 2 Data Models and Query Languages
 • ideas
 - data abstraction layers: the application layer (api, objects), db data structures layer (as JSON documents, or tables etc), db implementation layer (memory, disk, network), physical layer (circuits)
