@@ -24,3 +24,20 @@
   - failure of db: both can fail because of increased load (need better scaling)
   - initial session connect request big for large teams (can do lazy queries)
   - mass reconnects: n users doing O(N^2) session connect requests at the same time (use edge cache close to the customers)
+
+#### [Scaling Slack](https://www.youtube.com/watch?v=o4f5G9q_9O4) -- follow up of Slack's Architecture after ~2 years
+- Set up: webapp (auth, API, CRUD etc) and Channel Server (real time websocket service for messages, user status, order of msgs etc)
+- Scaling case 1: acking and persisting messages
+  - old flow: client sends to CS, CS broadcasts to other users in channel (end of user perceived latency), then CS contacts webapp to persist msg.
+    - good: good degraded performance -- users can still send&receive when webapp is down
+    - bad: CS needs to maintain states -- buffer uncommitted msgs on disk (for replay after crash), and retry when webapp is down -- which increases complexity and complicates deployment/upgrades
+  - new flow: client sends to webapp, webapp queues the request (defer persistency), webapp asks CS to broadcast, CS does it (end of user perceived latency) and ack to webapp, finally webapp returns HTTP 200 to client.
+    - requires: stable job queue, better availability of webapp
+    - good: CS can now be stateless, user perceived latency still low, crash safe, client can send without setting up a websocket session
+- Scaling case 2: websocket initiation (see Challenges in previous article)
+  - old flow: client asks webapp to start, webapp gathers info from db and CS, returns huge payload to client, then client connects to CS (and do some catch ups)
+    - bad: payload size is huge for large teams (performance), db gets overloaded with mass # of connect requests(reliability), round trip times high (locality)
+  - new flow: deploy edge cache at different regions (pre-warmed, application-aware). Client connects to cache service, cache service gathers data from db and CS (opens connection to keep things up to date), and returns a slimmed version of initialization data
+- Lessons to take home
+  - To increase solution space, work on the end-to-end problem instead of focusing on a single subcomponent.
+  - Optimality in design changes with growth.
