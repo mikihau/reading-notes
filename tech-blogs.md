@@ -41,3 +41,13 @@
 - Lessons to take home
   - To increase solution space, work on the end-to-end problem instead of focusing on a single subcomponent.
   - Optimality in design changes with growth.
+  
+#### [Case Study: Troubleshooting a Live Service: Routing](https://www.ebayinc.com/stories/blogs/tech/sre-case-study-url-distribution-issue-caused-by-application/)
+- Problem: a service is getting routed requests for other services behind a load balancer.
+- A systematic approach to find the scope of the problem:
+  - from the client side (see if the problem comes from direct requests, or the lb by checking source IPs)
+  - from the server side (see if the lb misroutes to other services)
+  - timing (after the downstream service deployed a new version)
+- If you can't find where the problem is, dig wider. If you found something strange that can't be easily explained, dig deeper. 
+- Get firsthand raw data to determine the root cause -- in this case take a [tcpdump](https://www.tcpdump.org/manpages/tcpdump.1.html) and view it on [wireshark](https://www.wireshark.org/) (go deeper from level 7).
+- In a production environment, the top priority is to mitigate the problem -- usually just roll back to the last known good version.
