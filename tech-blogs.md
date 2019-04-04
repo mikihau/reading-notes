@@ -51,3 +51,12 @@
 - If you can't find where the problem is, dig wider. If you found something strange that can't be easily explained, dig deeper. 
 - Get firsthand raw data to determine the root cause -- in this case take a [tcpdump](https://www.tcpdump.org/manpages/tcpdump.1.html) and view it on [wireshark](https://www.wireshark.org/) (go deeper from level 7).
 - In a production environment, the top priority is to mitigate the problem -- usually just roll back to the last known good version.
+
+#### [Reading Code](https://www.dropbox.com/s/q5mtxxk6bswkag6/Read%20Code.pdf)
+- Reading code exposes you to new langauge functionality, coding styles, and design. It makes other people's code less scary and you'll be comfortable changing other people's code.
+- Good places to start reading: dependencies of your own code, and important systems within the company, or [repos that HN people](https://news.ycombinator.com/item?id=9896369) [recommends](https://news.ycombinator.com/item?id=14462125).
+- Steps to reading a new codebase:
+  - Run: compile, run and understand what the code is supposed to do.
+  - Structure: identify most critical parts of the code by finding the most important files (e.g.`git log --pretty=format: -- name-only | sort | uniq -c | sort -rg | head -10`), and important integration tests where key functions are called.
+  - Deep dive: follow those key flows and dive into the data structures. Note down 2 kinds of things: new syntax/code patterns (a.k.a. glossary), and key questions you have.
+  - Write code: simple unit tests, integration tests, addressing simple issues/bugs.
