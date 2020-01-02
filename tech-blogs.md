@@ -60,3 +60,6 @@
   - Structure: identify most critical parts of the code by finding the most important files (e.g.`git log --pretty=format: -- name-only | sort | uniq -c | sort -rg | head -10`), and important integration tests where key functions are called.
   - Deep dive: follow those key flows and dive into the data structures. Note down 2 kinds of things: new syntax/code patterns (a.k.a. glossary), and key questions you have.
   - Write code: simple unit tests, integration tests, addressing simple issues/bugs.
+
+#### [AWS re:Invent 2015: Scaling Up to Your First 10 Million Users](https://www.youtube.com/watch?v=vg5onp8TU6Q&list=PLhr1KZpdzukdRxs_pGJm-qSy5LayL6W_Y)
+- http://highscalability.com/blog/2016/1/11/a-beginners-guide-to-scaling-to-11-million-users-on-amazons.html
