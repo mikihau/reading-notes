@@ -153,32 +153,39 @@ Chapter 4 Encoding and Evolution
      - advantages: buffer for slowness, auto redelivery--reliability, avoids sender knowing IP of recipient, multiple recipients for same msg, sender just sends (logical decoupling)
      - the msg queue usually have flexible data model, but also should consider backward/forward compatibility
 
-Chapter 5 Replication
+#### Chapter 5: Replication
 - benefits for data replication
-     - low latency (different geographical regions)
+     - low latency (different geographical regions) (roundtrip CA -> Netherlands: 150ms)
      - better scaling (more read load)
      - high availability/tolerance
 - master-slave/leader-follower
-     - 1 leader to handle writes, leader tells followers to write, followers are read-only
+     - 1 leader to handle writes; leader tells followers to write by sending replication logs; followers are read-only
      - synchronous vs asynchronous replication on write
           - never have all synchronous because that breaks HA
-          - semi-synchronous: one sync and other s async -- so that always have 2 up-to-date copies of data
-          - async: good: continue to service writes even all followers fall behind; bad: weak durability(if leader fails) but there are ways to solve it
+          - semi-synchronous: one sync replica + other async replicas -- so that we always have 2 up-to-date copies of data
+          - async: good: continue to service writes even all followers fall behind; bad: weak durability(if leader fails unreplicated changes are lost)
      - setting up new followers
-          periodically store snapshots of leader, copy shot then apply logs later than that
+          periodically store consistent snapshots of the leader; copy the snapshot to the new follower, then apply logs later than that
      - failover
-          - if follower fails, catch up with leader by asking for write logs then replying
-          - if leader fails, 1. detect failure via timeout, 2. select new leader, 3. reconfigure all nodes (the entire system) to recognize new leader
+          - if follower fails, just catch up with the leader by asking for the write logs later than what it already has and replaying them
+          - if leader fails,
+               1. detect failure via timeout
+               2. select new leader (concensus)
+               3. reconfigure all nodes (including the old leader if/when it comes back) to recognize new leader
           - possible issues
-               - new leader has a lag from old leader (if async replication), so data might be lost if discarded, or data conflict when old leader comes back up
+               - new leader has a lag from old leader (if async replication), so data might be lost, or has conflicts when old leader comes back up (especially bad if other storages like cache depends on a lagging new leader)
                - split-brain: 2 leaders at the same time, resulting in data conflict/corruption
-               - timeout too large looses data, timeout too small results in unneeded failover and further delays system
-     - ways to implement replication
-          - pass queries from leader to follower: potential issue being some queries underterministic (RAND, NOW, user defined functions)
-          - pass WAL (write ahead logs) to follower: readily available, but issue being WAL usually low level (pointers to address etc), making it hard for replicas to run to different software versions, requiring downtime when upgrade
-          - pass logical logs to follower: logs recording which rows are changed, decoupling with storage details. also good for export to external applications
-          - trigger based: especially relational dbs, when certain things gets committed, sotre something in a table, so other applications can use. but more error prone than built-in replication
-- problems with replication lag
+               - too short of a timeout results in unneeded failovers and further delays system, if system already at high load or with network glitches
+     - implementing replication logs
+          - pass queries from leader to follower: potential issue being some queries underterministic (RAND), dependent on current db (UPDATE WHERE), or side effects (user defined functions)
+          - pass WAL (write ahead logs) to follower: readily available, but issue being WAL usually low level (bytes on disk blocks), making it hard for replicas to run to different software versions, requiring downtime when upgrade
+          - pass logical (row-based) logs to follower: logs recording which rows are changed, decoupling with storage details; also good for exporting to external applications
+          - trigger based (application level): in relational dbs, a trigger can be fired to log a change in a table when a write transaction commits, so other applications can use it later. more error prone than built-in replication
+- problems with replication lag (1 sec+)
+     - possible causes
+          - machine near capacity
+          - network issues
+          - recovering from failure
      - read-after-write consistency
           - requires a read after write should show instantly
           - solutions
