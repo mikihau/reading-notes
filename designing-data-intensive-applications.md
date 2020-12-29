@@ -186,26 +186,32 @@ Chapter 4 Encoding and Evolution
           - machine near capacity
           - network issues
           - recovering from failure
-     - read-after-write consistency
+     - problem #1: read-your-own-write consistency
           - requires a read after write should show instantly
           - solutions
-               - if something could be modified, read from leader (slow)
+               - if something could be modified, read from leader by routing the request to leader's datacenter (doesn't work if everything's modifiable)
                - for 1 min after last write, read from leader
-               - client remembers last write, server finds a replica that lags above this (or leader)
+               - client remembers (logical or actual) timestamp of last write, server finds a replica that lags below this for the next read
                - cross-device: member of last write needs to be centralized; route to same datacenter for all devices
-     - monotonic reads
-          - problem: read from 2 different replicas and 2nd is slow so data disappears
-          - solution: ensure each user always read from the same replica
-     - consistent prefix reads
-          - problem: when things in different partitions, and some partitions slow, see logically reversed contents
-          - solution: relate partitions with logical order (but this is hard)
+     - problem #2: monotonic reads
+          - problem: read from first a more up-to-date replica, then a lagging replica; observes data moving back in time
+          - solution: ensure each user always read from the same replica (e.g. route with hash of userId) unless the replica fails
+     - problem #3: consistent prefix reads
+          - problem: when 2 causally related data lands in different partitions, they replicate at different rates (partitions operate independently, no global ordering of events for partitioned systems); may see logically reversed contents
+          - solution: application makes sure causually related content are put in the same partition (may not be efficient); or use the tracking algorithm to track causal dependencies
      - bottom line
           - application code needs to be aware of replication lag
-          - distributed system transactions?
+          - db could provide distributed transactions (partitioned and replicated) as a guarantee, but at a cost of performance and availability
 - multi-leader replication
      - write to any leader, and leaders have ways to sync up asynchronously themselves
-     - benefits: write performance, tolerance of datacenter outages (one leader per DC), tolerance of network problems (in multi DC setting, public network not as reliable)
-     -  some scenarios: applications with offline operation (e.g. calendar sync), collaborative filtering (one user/device as a db leader, and network extremely unreliable)
+     - benefits
+          - write performance: otherwise all writes has to go cross-DC onto that single leader
+          - tolerance of datacenter outages (one leader per DC)
+          - tolerance of network problems: public network not as reliable; single leader is sensitive to network since all writes are synchronous
+     -  use cases/scenarios for multi-leader
+          - multiple data centers: 1 leader per DC; between DCs leaders replicate to each other after conflict resolution
+          - applications/clients that still works without internet connection, e.g. in a calendar app, viewing/changing meetings while offline means it's 1 leader/DC per device, and network extremely unreliable
+          - collaborative editing: one user/device as a db leader for faster collaboration, or single-leader transaction for slower collaboration (locking)
      - write conflicts
           - happens when two writes goes into 2 different leaders, and both writes gets an OK as a response
           - solution 1: ensure each record is handled by only 1 leader, but breaks when rerouting traffic to another datacenter etc
@@ -251,6 +257,8 @@ Chapter 4 Encoding and Evolution
                - client: read before write; when read, expect all vals not overwritten with a latest version #; when write, include version # from previous read and merge all vals received pro read
                - delete: tombstone and can't just delete the val
                - for multiple replicas, use one version # per replica, therefore version vector
+- questions
+     - how do you take a consistent snapshot while serving reads and writes?
 
 Chapter 6 Partitioning
 - each node like an independent db, only that they collectively return the right answer
