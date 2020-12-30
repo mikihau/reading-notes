@@ -213,20 +213,24 @@ Chapter 4 Encoding and Evolution
           - applications/clients that still works without internet connection, e.g. in a calendar app, viewing/changing meetings while offline means it's 1 leader/DC per device, and network extremely unreliable
           - collaborative editing: one user/device as a db leader for faster collaboration, or single-leader transaction for slower collaboration (locking)
      - write conflicts
-          - happens when two writes goes into 2 different leaders, and both writes gets an OK as a response
-          - solution 1: ensure each record is handled by only 1 leader, but breaks when rerouting traffic to another datacenter etc
-          - solution 2: resolve by converging: take the write with higher write ID, take the write with higher replica ID (both prone to data loss), merge values (concat for strings), record conflict in a data structure and write application code to resolve conflict
+          - happens when two writes goes into 2 different leaders and both gets OK -- need to resolve asynchronously
+          - usually applies to individual row/records, even in a multi-write transaction
+          - solution #1: avoiding it: ensure each record is handled by only 1 datacenter; breaks when rerouting traffic to another datacenter etc
+          - solution #2: resolve in a convergent way
+               - take the write with higher write ID/replica ID/timestamp(aka Last Write Wins); loses data
+               - merge values (concat for strings by alphabetical order)
+               - record the conflict in a data structure, and write application code to resolve conflict
           - application code for conflict resolution
-               - on write: run code instantly
-               - on read: when read, run code (either instantly or prompt user to resolve)
+               - on write: predefine a handler code and run it instantly at conflict detection
+               - on read: when read, run code (either instantly or prompt user to resolve), then write back
      - communication topologies among multiple leaders
-          - circular, star
-               - data passes through multiple times so need to remember which replica the data has passed through, and ignore when arrives at self
-               - problem: if one leader fails then flow is interrupted, reconfiguration is tricky/slow
-          - all-to-all: 
-               - every pair of nodes
+          - circular, star/tree
+               - data passes through multiple nodes, so need to remember which replica the data has passed through in the rep log to ignore it when arrives at self
+               - problem: one single failed node interrupts the flow, reconfiguration is manual/tricky
+          - all-to-all
                - problem: when some leaders' network is faster than others, a leader receives time-reversed replication requests
-               - cannot use timestamp (unreliable) or logical (both are logical), could use version vectors, but lots of implementations are poor in this
+               - cannot use timestamp (clock skew)
+               - can use version vectors to order these events
 - leaderless replication
      - n replicas, write to all replicas at the same time at wait for OK from w replicas, read from r replicas at the same time, select the newest value
      - example: Amazon's Dynamo
@@ -259,6 +263,7 @@ Chapter 4 Encoding and Evolution
                - for multiple replicas, use one version # per replica, therefore version vector
 - questions
      - how do you take a consistent snapshot while serving reads and writes?
+     - conflict resolution: 2-way merge(CRDT) vs 3-way merge(mergeable persistent data structures), what's the difference?
 
 Chapter 6 Partitioning
 - each node like an independent db, only that they collectively return the right answer
