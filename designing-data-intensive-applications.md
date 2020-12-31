@@ -231,25 +231,26 @@ Chapter 4 Encoding and Evolution
                - problem: when some leaders' network is faster than others, a leader receives time-reversed replication requests
                - cannot use timestamp (clock skew)
                - can use version vectors to order these events
-- leaderless replication
-     - n replicas, write to all replicas at the same time at wait for OK from w replicas, read from r replicas at the same time, select the newest value
-     - example: Amazon's Dynamo
-     - quorum consistency: when w + r > n, read and write overlaps, guaranteed to have the newest value. usually pick odd n, have w = r = (n + 1) / 2
+- leaderless replication (e.g. Amazon Dynamo)
+     - write to all n replicas at the same time and wait for OK from w replicas, read from all n replicas and wait for r values, then select the newest value by versioning
+     - quorum consistency: when w + r > n, read and write overlaps -- guaranteed to have the newest value; usually pick odd n with w = r = (n + 1) / 2
+     - previously down replica to catch up
+          - read repair: when read, client sees stale value so client writes back to that replica; good for frequently read records
+          - anti-entropy process: background process to check and repair inconsistencies; without this values rarely read may have reduced durability
      - multi datacenter
           - option 1: send write to all nodes in all dcs, read usually wait for the local nodes because they're fast
           - option 2: send read and write locally, and cross-dc replication happens async like multi-leader model
-     - previously down replica catch up
-          - read repair: when read, client sees stale value so client writes back to that replica (good for frequently written records)
-          - anti-entropy process: background process to check for that
-     - limitations for quorum consistency
-          - if sloppy quorum, then read no longer guaranteed to overlap with writes (because writes have temporarily moved to other nodes)
+     - limitations for quorum consistency even when w + r > n
+          - if sloppy quorum, then reads are no longer guaranteed to overlap with writes (because writes have temporarily moved to other nodes)
                - sloppy quorum: a tradeoff between read and write -- this tolerates better on writes
                - hinted handoff: write the value back to the original nodes when they're back
-          - concurrent writes causes conflicts that needs to get resolved
-          - if writes ack < w, values are not rolled back on succeeded nodes -- when later read from these nodes, they return a bad value
+          - concurrent writes cause conflicts -- has to merge values, since timestamped LWW suffers from clock skew
+          - for concurrent write and read, values returned to read is undetermined
+          - if write acks < w, values are not rolled back on succeeded nodes -- later reads may see the value from the failed write
+          - number of replicas holding new value falls below w, if we copy data from a stale replica when a replica fails
      - monitoring staleness
-          - for leader based, just subtract
-          - for leaderless, not common in practice
+          - for leader based dbs, just measure the difference between the follower's position in replication log from the leader's
+          - for leaderless dbs, not common in practice
      - concurrent writes: detection and resolution
           - Last Write Wins (LWW)
                - force an ordering of writes, e.g. timestamp, discard earlier ones
