@@ -241,8 +241,8 @@ Chapter 4 Encoding and Evolution
           - option 1: send write to all nodes in all dcs, read usually wait for the local nodes because they're fast
           - option 2: send read and write locally, and cross-dc replication happens async like multi-leader model
      - limitations for quorum consistency even when w + r > n
-          - if sloppy quorum, then reads are no longer guaranteed to overlap with writes (because writes have temporarily moved to other nodes)
-               - sloppy quorum: a tradeoff between read and write -- this tolerates better on writes
+          - if using sloppy quorum, then reads are no longer guaranteed to overlap with writes (because writes have temporarily moved to other nodes)
+               - sloppy quorum: when number of nodes >> n (maybe the db is partitioned) and network partitition happens, the db still accepts writes from clients cut off from the usual n nodes, and store data temporarily on a different set of nodes
                - hinted handoff: write the value back to the original nodes when they're back
           - concurrent writes cause conflicts -- has to merge values, since timestamped LWW suffers from clock skew
           - for concurrent write and read, values returned to read is undetermined
@@ -252,16 +252,22 @@ Chapter 4 Encoding and Evolution
           - for leader based dbs, just measure the difference between the follower's position in replication log from the leader's
           - for leaderless dbs, not common in practice
      - concurrent writes: detection and resolution
+          - problem: events arrive in different order on different nodes, due to network delay and paritial failures; but nodes should converge to a consistent value regardless to be eventually consistent
           - Last Write Wins (LWW)
                - force an ordering of writes, e.g. timestamp, discard earlier ones
-               - cost for durability: bad, and even drop nonconcurrent writes (timestamps are not reliable)
-               - but LWW good for situations where a key gets written only once: e.g. use a UUID as key
-          - a causal relationship is not concurrent, e.g. insert a=3 and update a=5 are not concurrent
+               - cost for durability: may even drop nonconcurrent writes (timestamps are not reliable)
+               - the only safe way to use LWW is when a key gets written only once (immutable records): e.g. assign a UUID per write as the key
+          - concurrency is determined by whether two events know of each other, regardless of their actual timing
+               - A causal relationship is not concurrent, e.g. insert a=3 and update a=5 are not concurrent, but insert a=3 and insert a=5 are
           - making concurrent writes
-               - server: maintains version # for every key -- increment when key is written; when receive a write with a version number, overwrite all vals with that version # or below, but keep vals with a higher version #
-               - client: read before write; when read, expect all vals not overwritten with a latest version #; when write, include version # from previous read and merge all vals received pro read
-               - delete: tombstone and can't just delete the val
-               - for multiple replicas, use one version # per replica, therefore version vector
+               - example
+               ![shopping cart example](images/ddia-5-13.png)
+               - for each key, server maintains multiple <version #, value> pairs with the latest version number -- it increments the latest version number with every write, and stores the version number together with the value written
+               - client must read before a write to make sure it's seeing the most up to date value from the server
+               - on read request, server returns all values (not overwritten) with the latest version number
+               - when writing, client merges all values received in previous read, add its change, and include the version number that the change and merge is based on (use tombstone for deletes)
+               - on receiving a write request with version number n, server overwrites all values with version number n or below (they're already merged by client), but keep values with versions higher than n (they're concurrent with this write)
+               - for multiple replicas, use one version # per replica per key, forming a version vector
 - questions
      - how do you take a consistent snapshot while serving reads and writes?
      - conflict resolution: 2-way merge(CRDT) vs 3-way merge(mergeable persistent data structures), what's the difference?
