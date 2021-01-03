@@ -265,7 +265,7 @@ Chapter 4 Encoding and Evolution
                - for each key, server maintains multiple <version #, value> pairs with the latest version number -- it increments the latest version number with every write, and stores the version number together with the value written
                - client must read before a write to make sure it's seeing the most up to date value from the server
                - on read request, server returns all values (not overwritten) with the latest version number
-               - when writing, client merges all values received in previous read, add its change, and include the version number that the change and merge is based on (use tombstone for deletes)
+               - when writing, client merges all values received in previous read (either using custom implementation or data structures like CRDT), add its change, and include the version number that the change and merge is based on (use tombstone for deletes)
                - on receiving a write request with version number n, server overwrites all values with version number n or below (they're already merged by client), but keep values with versions higher than n (they're concurrent with this write)
                - for multiple replicas, use one version # per replica per key, forming a version vector
 - questions
