@@ -272,23 +272,29 @@ Chapter 4 Encoding and Evolution
      - how do you take a consistent snapshot while serving reads and writes?
      - conflict resolution: 2-way merge(CRDT) vs 3-way merge(mergeable persistent data structures), what's the difference?
 
-Chapter 6 Partitioning
-- each node like an independent db, only that they collectively return the right answer
+#### Chapter 6: Partitioning
+- each node like an independent db, only that they collectively return the right answer; complex queries may need multiple partitions to cooperate
+- one node may host multiple partitions and replicas, and is a leader in some partitions and follower in others
 - ways to partition
+     - goal: spread data/query load evenly, avoid hot spots
      - by key range
-          - set boundaries between keys (shouldn't be evenly spaced)
+          - keep key in sorted order and set boundaries between keys (chosen manually or automatically)
           - good: range queries efficient
-          - bad: possible hot spots (busy nodes) on some queries
+          - bad: possible hot spots on some queries -- can use an alternative key
           - rebalancing: dynamic (split to 2 when partition size over a threshold)
-     - by hash
-          - hash keys using a good hash function so items evenly spaced
+     - by hash of the key
+          - hash keys using a good hash function (e.g. md5); boundary evenly spaced, or chosen randomly (a.k.a. consistent hashing)
           - good: less prone to hot spots
           - bad: no range queries
           - rebalancing: common to have a fixed number of partitions then move the entire partition
      - compound
-          - compound primary key: first column by hash then later columns concatenated for sorting
+          - compound primary key: first column by hash (for partitioning), and later columns concatenated for sorting
+          - good: supports range queries with a fixed partition key to model one-to-many relationships, e.g. (userId, timestamp)
 - skewed workloads, hot spot relieving
      - skewed workloads happen for situations like celebrity
+     - solution without db native support: adding a 2 digit random number to spread the load to 100 nodes
+          - but reads now requires to hit all 100 nodes
+          - and this needs additional bookkeeping to know which key are split and how they're split
 - partitioning with secondary indexes
      - secondary indexes: usually one key (secondary index) corresponds to multiple rows
       - document-partitioned indexes (local indexes)
