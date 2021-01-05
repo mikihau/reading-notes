@@ -290,36 +290,38 @@ Chapter 4 Encoding and Evolution
      - compound
           - compound primary key: first column by hash (for partitioning), and later columns concatenated for sorting
           - good: supports range queries with a fixed partition key to model one-to-many relationships, e.g. (userId, timestamp)
-- skewed workloads, hot spot relieving
+- skewed workloads
      - skewed workloads happen for situations like celebrity
      - solution without db native support: adding a 2 digit random number to spread the load to 100 nodes
           - but reads now requires to hit all 100 nodes
           - and this needs additional bookkeeping to know which key are split and how they're split
 - partitioning with secondary indexes
-     - secondary indexes: usually one key (secondary index) corresponds to multiple rows
+     - secondary indexes: usually one key (secondary index) corresponds to multiple rows for search; doesn't map to partitions easily since partitions are done with the primary key
       - document-partitioned indexes (local indexes)
           - each partition keeps its own index
           - good: fast writes because it only writes to one partition
-          - bad: need to read from all partitions so expensive and prone to tail latency amplification
+          - bad: scatter-gather; need to read from all partitions so it's expensive and prone to tail latency amplification
      - term-partitioned indexes (global indexes) 
-          - global index of all global data, stored in different partitions based by term (or hash of term)
-          - good: read is fast -- only query the index then go to the actual partition
-          - bad: write needs to be on multiple partitions because index of different terms are on different nodes, and lack of transaction support (usually async)
+          - global index of all data, stored in partitions based on term (range scans), or hash of term (even distribution)
+          - good: read is fast -- only query the index then go to the actual data
+          - bad: write needs to be on multiple partitions because index of different terms are on different nodes, requiring distributed transaction support (in practice index updates are usually async, so reading index immediately after write doesn't give the updated data)
 - rebalancing
-     - needed because: query throughput increases, need more nodes to serve; data size increases, need more nodes to store; machine failure, need replacement
+     - moving load from one node to another
+     - scenarios: query throughput increases, need more CPUs to handle; data size increases, need more disk/RAM to store; machine failure, need replacement
      - requirements: fair share of loads, continue to serve read+write while rebalancing, move only minimal amount of data
-     - rebalancing is risky expensive; so best to suggest rebalancing and have admin confirm it
      - fixed number of partitions
-          - make lots of partitions, only move entire partitions
+          - make lots of partitions (p >> n), only move entire partitions across nodes
           - partition size proportional to data size
-          - challenging to decide number of partitions (too large has overhead maintaining), especially when starting with empty db
+          - challenging to decide on the number of partitions (partitions incur maintenance overhead, but when partitions are large, rebalancing/recovery is expensive), especially when data size is highly variable
      - dynamic partitioning
-          - when a partition grows beyond a max size, split into 2; merge when partition below threshold
+          - split and merge partitions as the size of the partitions change
           - number of partitions grows proportionally to data size
-          - good for adaption to data size; but when empty db, can configure initial partitioning
+          - good for adaption to data size; with an empty db, you can configure initial partitioning
+          - can be used for both key-range and hashed partitions
      - partitioning proportional to nodes
           - fixed number of partitions per node, since num of nodes usually grow with data size, partition size is usually stable
-          - when new node joins, randomly decide to split a fixed number of partitions and move to new nodes (consistent hashing)
+          - when a new node joins, it randomly splits a fixed number of existing partitions and move those splits into the new node (consistent hashing)
+          - partitions are split by random, so requires hashed partitioning (could create unfair splits, but mitigated with p >> n)
 - request routing
      - knowledge can be kept in all nodes, a routing tier, or the client
      - for routing tier, use zookeeper to keep these data, and have routing tier subscribe to zookeeper events
