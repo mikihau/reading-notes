@@ -322,10 +322,16 @@ Chapter 4 Encoding and Evolution
           - fixed number of partitions per node, since num of nodes usually grow with data size, partition size is usually stable
           - when a new node joins, it randomly splits a fixed number of existing partitions and move those splits into the new node (consistent hashing)
           - partitions are split by random, so requires hashed partitioning (could create unfair splits, but mitigated with p >> n)
+     - operations: rebalancing is expensive (moving huge chunks of data and rerouting), and auto-detection + auto-rebalancing can exacerbate a problem -- need some human intervention
 - request routing
-     - knowledge can be kept in all nodes, a routing tier, or the client
-     - for routing tier, use zookeeper to keep these data, and have routing tier subscribe to zookeeper events
-     - for all nodes, can have a gossip protocol (complex)
+     - knowledge of which partition is kept at which node can be kept in one of these places
+          - all nodes: request hits a random node (IP not changing as much, so enough to use DNS), then forwarded to the owning node
+          - a routing tier: forwards requests to the owning node; needs to have HA too
+          - the client(s): directly connects to the owning node
+     - knowledge is distributed across different places, so usually delegates the knowledge to Zookeeper, and have nodes/client subscribe to Zookeeper updates
+          - zookeeper stores (key-range, partition, node, IP address)
+     - alternatively in the all-nodes scenario, can use a gossip protocol so it doesn't rely on external service discovery
+     - in data warehouses, MPP(massively parallel processing) query optimizer breaks down a complex query into execution stages on partitions for parallel execution
 
 Chapter 7 Transactions
 - simplify the programming model by grouping several reads+writes into a unit -- commit or abort
