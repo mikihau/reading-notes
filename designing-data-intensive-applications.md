@@ -333,8 +333,10 @@ Chapter 4 Encoding and Evolution
      - alternatively in the all-nodes scenario, can use a gossip protocol so it doesn't rely on external service discovery
      - in data warehouses, MPP(massively parallel processing) query optimizer breaks down a complex query into execution stages on partitions for parallel execution
 
-Chapter 7 Transactions
-- simplify the programming model by grouping several reads+writes into a unit -- commit or abort
+#### Chapter 7 Transactions
+- why
+     - provides an abstraction to simplify the programming model by grouping several reads+writes into a unit
+     - either commits or aborts, so applications don't have to worry about partial failure 
 - the safety guarantees of transactions: ACID
      - atomicity (abortability): guarantee that if something fails it can be retried because previous failed action has been rolled back
      - consistency: application data is in good state (invariants still hold) -- but it's determined by application, not db
