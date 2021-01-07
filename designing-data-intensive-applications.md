@@ -286,7 +286,7 @@ Chapter 4 Encoding and Evolution
           - hash keys using a good hash function (e.g. md5); boundary evenly spaced, or chosen randomly (a.k.a. consistent hashing)
           - good: less prone to hot spots
           - bad: no range queries
-          - rebalancing: common to have a fixed number of partitions then move the entire partition
+          - rebalancing: common to have a fixed number of partitions then move the entire partition; can also use dynamic partitioning
      - compound
           - compound primary key: first column by hash (for partitioning), and later columns concatenated for sorting
           - good: supports range queries with a fixed partition key to model one-to-many relationships, e.g. (userId, timestamp)
