@@ -337,15 +337,16 @@ Chapter 4 Encoding and Evolution
 - why
      - provides an abstraction to simplify the programming model by grouping several reads+writes into a unit
      - either commits or aborts, so applications don't have to worry about partial failure 
-- the safety guarantees of transactions: ACID
-     - atomicity (abortability): guarantee that if something fails it can be retried because previous failed action has been rolled back
-     - consistency: application data is in good state (invariants still hold) -- but it's determined by application, not db
+- the safety guarantees of transactions: ACID (meaning is ambiguous -- mostly a marketing term)
+     - atomicity (abortability): guarantee that if a group of several writes fails halfway, the group can be retried safely, because the db has undone any writes so far
+     - consistency: application data is in good state (invariants still hold) -- but it's determined by application, not the db
      - isolation
           - concurrent transactions are isolated from each other: one transaction can't see another's uncommitted writes
-          - e.g. concurrent increments may loose data
-          - stronger guarantee: serializability -- concurrent as if serial
+          - e.g. the concurrent read-modify-write
+          - also called serializability -- concurrent as if actions are made in serial
      - durability
-          - once transaction is committed it will not be forgotten even if failure or crash
+          - once transaction is committed, it will not be forgotten even in case of hardware failure or crash
+          - in a standalone db it means data is written to disk; in a replicated db it means data has been written to several nodes
           - but nothing's absolute; disks can fail, ssd can get corrupted, power/node outage for in-memory dbs etc
 - single object and multi object operations
      - usually atomicity and isolation on the level of a single object via log and lock on objects
