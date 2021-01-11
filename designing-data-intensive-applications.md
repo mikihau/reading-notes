@@ -297,7 +297,7 @@ Chapter 4 Encoding and Evolution
           - and this needs additional bookkeeping to know which key are split and how they're split
 - partitioning with secondary indexes
      - secondary indexes: usually one key (secondary index) corresponds to multiple rows for search; doesn't map to partitions easily since partitions are done with the primary key
-      - document-partitioned indexes (local indexes)
+     - document-partitioned indexes (local indexes)
           - each partition keeps its own index
           - good: fast writes because it only writes to one partition
           - bad: scatter-gather; need to read from all partitions so it's expensive and prone to tail latency amplification
