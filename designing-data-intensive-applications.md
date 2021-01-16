@@ -336,33 +336,33 @@ Chapter 4 Encoding and Evolution
 #### Chapter 7 Transactions
 - why
      - provides an abstraction to simplify the programming model by grouping several reads+writes into a unit
-     - either commits or aborts, so applications don't have to worry about partial failure 
+     - either commits or aborts, so applications don't have to worry about partial failure, and can safely retry
 - the safety guarantees of transactions: ACID (meaning is ambiguous -- mostly a marketing term)
      - atomicity (abortability): guarantee that if a group of several writes fails halfway, the group can be retried safely, because the db has undone any writes so far
      - consistency: application data is in good state (invariants still hold) -- but it's determined by application, not the db
      - isolation
-          - concurrent transactions are isolated from each other: one transaction can't see another's uncommitted writes
-          - e.g. the concurrent read-modify-write
+          - concurrent transactions are isolated from each other: one transaction (a transaction may include a few writes on different objects) can't see another's uncommitted writes
+          - e.g. of violation to isolation: the concurrent read-modify-write
           - also called serializability -- concurrent as if actions are made in serial
      - durability
           - once transaction is committed, it will not be forgotten even in case of hardware failure or crash
           - in a standalone db it means data is written to disk; in a replicated db it means data has been written to several nodes
           - but nothing's absolute; disks can fail, ssd can get corrupted, power/node outage for in-memory dbs etc
-- single object and multi object operations
-     - usually atomicity and isolation on the level of a single object via log and lock on objects
-     - transactions on a group of multiple objects
-     - hard to implement correctly on a distributed db
-     - but there's need for multi object transactions
+- single object and multi object transactions
+     - always provided: dbs universally provide atomicity and isolation on the level of a single object via log (for crash recovery) and lock (for isolation) on objects
+     - sometimes provided: to prevent data loss in a concurrent scenarios, some dbs provide automic increment, and/or CAS (compare-and-set) -- allowing the set to succeed only if value is not changed by someone else (otherwise retry)
+     - not all provides: transactions on a group of multiple objects is tricky to implement on a distributed scenario, and is costly on performance, but there's still need for multi object transactions
           - in relational model, foreign key reference requires updating multiple tables
-          - in denormalized document db, different fields and documents needs to be updated
+          - in denormalized document db, different fields and documents need to be updated (e.g. email records has a is_unread field, and mailbox records has a num_unreads field to avoid counting unreads)
           - for secondary indexes, both the index and the doc needs to be updated
      - handling errors and aborts
           - best effort dbs (like leaderless) requires better handling in application level
           - problem with retries
                - if action succeeded but network back failed, a retry replays the action, unless there's application dedup in there
-               - retry due to overload worsens the problem, should use potential backoff, and handle overload issues separately
-               - retry pointless for permanent error, only useful to transient errors (deadlock, network, failover etc)
+               - retry due to overload worsens the problem, should limit the number of retries, use potential backoff, and handle overload issues separately (is it even possible?)
+               - retry is only useful to transient errors (deadlock, isolation violation, network, failover etc)
                - side effects might be duped because they happen even if abort; e.g. sending the email twice, so should use two phase commit (2PC)
+               - if the data in client is kept only in memory, and during the (lengthy since there are backoff) retry process if the client failed, data is lost
 - weak isolation levels
      - read committed
           - only read committed data (no dirty reads), and only overwrite committed data (no dirty writes)
