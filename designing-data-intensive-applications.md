@@ -363,28 +363,35 @@ Chapter 4 Encoding and Evolution
                - retry is only useful to transient errors (deadlock, isolation violation, network, failover etc)
                - side effects might be duped because they happen even if abort; e.g. sending the email twice, so should use two phase commit (2PC)
                - if the data in client is kept only in memory, and during the (lengthy since there are backoff) retry process if the client failed, data is lost
+- It's not easy to test for concurrency issues in a large database (hard to reproduce and not knowing which other code is accessing the db), but serializable isolation has a performance cost, so dbs try to provide some weaker level of isolation.
 - weak isolation levels
      - read committed
           - only read committed data (no dirty reads), and only overwrite committed data (no dirty writes)
-          - no dirty reads prevent problems: other readers won't see partial updates if updates on multiple objects, and if aborts then uncommitted data won't be read by others
-          - no dirty writes prevent problems: when 2 transactions both act on 2 same objects, and a transaction enters early and exits late, it will see inconsistent values
-          - does not solve: information lost (2 concurrent increments), or repeatable read problem
+          - no dirty reads prevents problems: other readers won't see partial updates if updates on multiple objects, and if aborts then uncommitted data won't be read by others
+          - no dirty writes prevents problems: when 2 transactions both act on 2 same objects, and a transaction enters early and exits late, it's 1st value written is lost to the 2nd transaction
+          ![dirty write example](images/ddia-7-5.png)
+          - does NOT guard against: read-modify-write data races (e.g. 2 concurrent counter increments), since the 1st write is already committed; or the repeatable reads problem
           - implementation
                - dirty writes prevented by row-level locks (don't release lock until transaction completes)
-               - dirty reads prevented by locks (unpopular for performance dip) or keeping both an uncommitted version and an old version
+               - dirty reads prevented by the same locks (unpopular because of performance dip from long running transactions), or keeping both an uncommitted version and an old version and serve the old version while the write transaction is running
      - snapshot isolation/repeatable read
-          - unrepeatable read: a read reads 2 objects, and in between 2 reads a committed write transaction modifies both obj (e.g. account transfer). if read again then consistent back again
-          - why unrepeatable read is bad
-               - db backup might read unrepeatably result in restoring inconsistent db backup
-               -  analysis might analyze on inconsistent data, integrity checks might fail
-          - solution -- snapshot isolation: each read transaction sees a consistent snapshot of db while writes continue to operate
+          - nonrepeatable read/read skew: a read transaction reads 2 objects, and in between the 2 reads, a committed write transaction modifies both obj (e.g. account transfer) -- but this read result won't be repeated
+          ![nonrepeatable read example](images/ddia-7-6.png)
+          - when nonrepeatable read can't be tolerated (long running, read-only transactions)
+               - db backup may take hours, and it can't read nonrepeatable result, otherwise it'll backup inconsistent values
+               - analysis or integrity checks touches a large part of db, and it might fail if seeing these transiently inconsistent data
+          - snapshot isolation prevents it: each read transaction sees a consistent snapshot of the db at a particular point in time (at the start of itself); even if data is changed by some later transaction, they won't be seen
           - implementation
-               - db keeps several different committed version of db -- MVCC (multi-version concurrency control)
-               - each transaction assigned an always-increasing id, if write, record the id that modifies the val (create another record with deletedBy)
-               - a transaction ignores: all writes in progress when it started, aborted, writes one by later transaction
-               - indexes for multi-version db
-                    - index points to all versions and filter by visibility, and garbage collection modifies index as well
-                    - append-only B-tree (copy page up to root) creates new snapshots, also need garbage collection
+               - generalizing on keeping 2 versions (old and during transaction), the db keeps several different committed version of db -- MVCC (multi-version concurrency control)
+               - each transaction assigned an always-increasing transactionId
+               - each db row stores multiple versions, each version has fields: id, value(s), createdBy (transactionId), deletedBy
+               - each write operate translates to a delete and a create, and modifies the row metadata accordingly
+               - reads observes an object(i.e. row metadata entry) value only if both the 2 conditions are true (requires compiling a list of all in-progress transactionIds when the transaction starts):
+                    - at the time that this read transaction started, the transaction creating this object is already committed
+                    - the object is either not marked for deletion, or it is but the transactionId isn't committed at the time this read transaction starts
+           - ways indexes work for a multi-version db
+                - can have index pointing to all versions of the object, and filter by visibility given the transactionId, then garbage collects the index entries together with old versions
+                - use append-only, copy-on-write B-tree (similar to git) for the entire db -- each transaction creates a new tree root; also needs garbage collection
      - preventing lost updates
           - mechanism to prevent one overwrites another in 2 concurrent writes (read-modify-write cycle), may happen with snapshot isolation
           - atomic operations
