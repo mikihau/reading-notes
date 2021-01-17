@@ -389,9 +389,9 @@ Chapter 4 Encoding and Evolution
                - reads observes an object(i.e. row metadata entry) value only if both the 2 conditions are true (requires compiling a list of all in-progress transactionIds when the transaction starts):
                     - at the time that this read transaction started, the transaction creating this object is already committed
                     - the object is either not marked for deletion, or it is but the transactionId isn't committed at the time this read transaction starts
-           - ways indexes work for a multi-version db
-                - can have index pointing to all versions of the object, and filter by visibility given the transactionId, then garbage collects the index entries together with old versions
-                - use append-only, copy-on-write B-tree (similar to git) for the entire db -- each transaction creates a new tree root; also needs garbage collection
+          - ways indexes work for a multi-version db
+               - can have index pointing to all versions of the object, and filter by visibility given the transactionId, then garbage collects the index entries together with old versions
+               - use append-only, copy-on-write B-tree (similar to git) for the entire db -- each transaction creates a new tree root; also needs garbage collection
      - preventing lost updates
           - mechanism to prevent one overwrites another in 2 concurrent writes (read-modify-write cycle), may happen with snapshot isolation
           - atomic operations
