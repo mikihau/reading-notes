@@ -393,22 +393,24 @@ Chapter 4 Encoding and Evolution
                - can have index pointing to all versions of the object, and filter by visibility given the transactionId, then garbage collects the index entries together with old versions
                - use append-only, copy-on-write B-tree (similar to git) for the entire db -- each transaction creates a new tree root; also needs garbage collection
      - preventing lost updates
-          - mechanism to prevent one overwrites another in 2 concurrent writes (read-modify-write cycle), may happen with snapshot isolation
-          - atomic operations
-               - eliminates the read-modify-write cycle
-               - usually implemented by locking that obj
+          - examples of read-modify-write: account balance read then update, adding an item to a list of JSON, concurrently editing wiki articles (save the entire document)
+          - atomic write operations
+               - usually implemented with locking on the object before read and release after write
+               - alternatively can force all atomic writes to be executed by 1 single thread
           - explicit locking
+               - e.g. for multi-player control of an avatar, automic write doesn't apply since we also need to integrate logic to check move isValid within the locking section
                - prone to errors because people forget to lock
           - auto detect lost updates
                - if detected, force one writer to abort and retry
+               - can be implemented efficiently with snapshot isolation
                - better than explicit locking because it doesn't require users to do anything
           - compare-and-set
-               - when updating, compare with old value and set only when data haven't been changed
-          - when there's replication
-               - lock and compare-and-set wouldn't be effective
-               - best to hold multiple values (siblings) and resolve later on
-               - atomic operations still works, best for commutative operations
-     - write skews, phantoms
+               - when updating, compare with old value and set only when data hasn't been changed
+          - when there's replication, concurrent writes happen on multiple nodes
+               - since there's no single up-to-date copy of the data, lock and compare-and-set wouldn't be effective (because they're non-deterministic?)
+               - atomic operations still works, best for commutative operations (increments, adding to a set etc)
+               - best to hold multiple versions of values (siblings) and resolve later on
+     - write skew and phantoms
           - write skews occur when 2 transactions read the same objects, then update some objects
           - if those 2 update the same obj, then it's a dirty write or a lost update; if update 2 different obj, then write skew
           - write skew
