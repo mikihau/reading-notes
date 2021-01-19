@@ -411,20 +411,28 @@ Chapter 4 Encoding and Evolution
                - atomic operations still works, best for commutative operations (increments, adding to a set etc)
                - best to hold multiple versions of values (siblings) and resolve later on
      - write skew and phantoms
-          - write skews occur when 2 transactions read the same objects, then update some objects
-          - if those 2 update the same obj, then it's a dirty write or a lost update; if update 2 different obj, then write skew
-          - write skew
-               - a SELECT query to calc for a condition
-               - code decides to proceed or not
-               - if proceeds, a write is committed that changes the result of the previous read query
-          - phantom: a write query changes the result of a read query
+          - examples of write skew
+               - both doctors select table of (name, is_on_call) to see if num_oncall > 2 at the same time, see yes under snapshot isolation, and both commits to take their name off call
+                    - solution: explicitly lock all rows (WHERE oncall = true) to disallow further reads and writes until the update is complete
+               - two organizers check if the same room is taken during the same meeting period by checking, see no under snapshot isolation, and both book the slot
+                    - solution: materializing conflicts. Create a table of for every room every 15 min for the next 6 months, lock these slots upon querying and release after the update
+               - 2 players controlling the same character tries to move it to the same coordinate, checks if there isn't already another item on the coordinate, see yes under snapshot isolation, and both move to the same position
+               - two users try to create the same username by checking if this name is taken at the same time, see ok under snapshot isolation, and both take it
+                    - solution: use the db's unique constraint (2nd attempt will force an abort)
+               - a user spend game money concurrently by first checking if the remaining balance would be > 0, see yes under snapshot isolation, and both commits the action
+          - how does the problem happen
+               1. a select query checks if some condition is satisfied by searching for multiple rows that satisfies some condition
+               2. depending on the result, the application code either aborts or goes ahead
+               3. going ahead, the application code modifies one or multiple objects so that it changes the precondition returned in step 1
+          - write skew is the generalization of lost updates (read-modify-write) -- two transactions concurrently read a few objects and updates some of them. When they update the same object, it's a dirty write or a lost update depending on the timing
+          - phantom: the effect that a write in one transaction changes the result of a search query in another transaction
           - solutions
-               - serializable isolation level
-               - or db constraints (e.g. unique)
-               - or lock up all obj during the first read query (including materializing conflicts)
+               - similar to detecting lost updates, use a db that provides true serializable isolation level
+               - use db constraints (e.g. unique)
+               - lock up all obj during the first read query (including materializing conflicts)
           - materializing conflicts
-               - if query for the absence of something, have a table that materialize it so that they could be locked up
-               - a last resort because it's error prone to materialize, and it's ugly
+               - if query checks for the absence of something, have a table that materialize it so that they could be locked up; this turns the phantom into concrete rows to lock on
+               - a last resort because it's error prone and ugly
 - serializability
      - strongest isolation level, guarantees that all transactions have result same as serial
      - why: other weaker isolation levels are hard to understand (implementation wise), hard to debug race condition bugs
