@@ -389,6 +389,7 @@ Chapter 4 Encoding and Evolution
                - reads observes an object(i.e. row metadata entry) value only if both the 2 conditions are true (requires compiling a list of all in-progress transactionIds when the transaction starts):
                     - at the time that this read transaction started, the transaction creating this object is already committed
                     - the object is either not marked for deletion, or it is but the transactionId isn't committed at the time this read transaction starts
+          - in effect, readers never block writers, and writers never block readers
           - ways indexes work for a multi-version db
                - can have index pointing to all versions of the object, and filter by visibility given the transactionId, then garbage collects the index entries together with old versions
                - use append-only, copy-on-write B-tree (similar to git) for the entire db -- each transaction creates a new tree root; also needs garbage collection
@@ -435,28 +436,29 @@ Chapter 4 Encoding and Evolution
                - a last resort because it's error prone and ugly
 - serializability
      - strongest isolation level, guarantees that all transactions have result same as serial
-     - why: other weaker isolation levels are hard to understand (implementation wise), hard to debug race condition bugs
+     - why: other weaker isolation levels are hard to understand (implementation wise), it's hard to debug a race, and there's no good tools to detect a race
      - actual serial execution
-          - execute on one thread, one core
-          - why a recent development
-               - RAM is now cheaper so can store all data in a transaction so each transaction is fast enough
-               - OLTP is usually shorter than analysis, and analysis is usually read only
-          - transactions needs to be fast: encapsulate transactions as stored procedures so it won't wait for multiple http requests
-          - used to have SQL style which is hard to debug, integrate, make changes etc, now some dbs have general language support
-          - limited to data that fits into memory; if not then abort, load data into memory, then retry
-          - write throughput needs to be low enough to be handled by single thread
-          - partitioning may speed it up (one thread per partition), but if coordination between partitions it's very slow (e.g. indexing)
+          - execute on one thread on one core
+          - on a recent development because
+               - RAM is now cheaper so we can store all data in memory, so each transaction is fast enough
+               - OLTP is usually shorter than analysis, and analysis is usually read only so it's served on a snapshot
+          - transactions needs to be fast to unblock other ones: encapsulate transactions as stored procedures (each procedure includes multiple db accesses) so it avoids waiting for multiple IO and locking overhead
+               - modern stored procedures uses existing general purpose programming languages
+          - caveats of single thread execution
+               - limited to data that fits into memory; if data not in memory then it should abort the transaction, load data into memory asynchronously, then retry
+               - write throughput needs to be low enough to be handled by single thread
+               - partitioning may speed it up (one thread per partition), but if coordination between partitions is required, it's very slow (e.g. secondary indexing) since it requires actual lockstep execution across multiple partitions
      - Two-phase locking (2PL)
-          - reads concurrent, but once there's a write, read is blocked by write and write is blocked by read until committed/aborted
+          - reads can be concurrent, but once there's a write, read is blocked by write and write is blocked by read until transaction is committed/aborted
           - implementation
                - locks in shared-mode (readers) and exclusive-mode (writers)
                - once acquires a lock, must hold until commit or abort
-               - deadlock happens because of so many locks involved
+               - deadlock happens frequently because of so many locks involved -- db detects deadlocks automatically, and aborts one of them to later retry by application
           - performance
                - overhead to acquire and release locks
-               - reduced concurrency: transactions can be any length and stalls subsequent transactions
+               - reduced concurrency: transactions can be any length, and even one long transaction stalls subsequent transactions
                - deadlock can happen more frequently
-               - overall, unstable throughput, long tails
+               - overall, 2PL dbs have unstable throughput with long tails
           - predicate locks, index-range locks
                - for write skew problems, need to acquire locks on all matching record in the initial SELECT clause
                - predicate lock: locks all obj (even future nonexistent obj) matching a predicate (also shared and exclusive mode)
