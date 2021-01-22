@@ -382,6 +382,7 @@ Chapter 4 Encoding and Evolution
                - analysis or integrity checks touches a large part of db, and it might fail if seeing these transiently inconsistent data
           - snapshot isolation prevents it: each read transaction sees a consistent snapshot of the db at a particular point in time (at the start of itself); even if data is changed by some later transaction, they won't be seen
           - implementation
+               ![MVCC example](images/ddia-7-7.png)
                - generalizing on keeping 2 versions (old and during transaction), the db keeps several different committed version of db -- MVCC (multi-version concurrency control)
                - each transaction assigned an always-increasing transactionId
                - each db row stores multiple versions, each version has fields: id, value(s), createdBy (transactionId), deletedBy
@@ -455,25 +456,27 @@ Chapter 4 Encoding and Evolution
                - once acquires a lock, must hold until commit or abort
                - deadlock happens frequently because of so many locks involved -- db detects deadlocks automatically, and aborts one of them to later retry by application
           - performance
-               - overhead to acquire and release locks
+               - overhead to acquire and release locks, especially since so many locks are involved, aborts and retries are common
                - reduced concurrency: transactions can be any length, and even one long transaction stalls subsequent transactions
                - deadlock can happen more frequently
                - overall, 2PL dbs have unstable throughput with long tails
-          - predicate locks, index-range locks
-               - for write skew problems, need to acquire locks on all matching record in the initial SELECT clause
-               - predicate lock: locks all obj (even future nonexistent obj) matching a predicate (also shared and exclusive mode)
-               - index-range locks
-                    - locks by index range, an approximation (stricter&safer) of predicate lock in implementation
-                    - if index not available, lock on the entire table, which is bad
+          - predicate locks and index-range locks
+               - predicate lock: a lock in the forms of a predicate (a SELECT clause) that belongs to all objects (even future nonexistent objects) -- also with shared and exclusive mode
+               - predicate lock + 2PL prevents all forms of write skew and race
+               - index-range(a.k.a. next-key) locks lock by index range as approximation of predicate lock in implementation; e.g. meeting room bookings has indicies either by time range or by room, so it locks on the targeted time range of all rooms, or this room at all times
+               - index-range locks lock a superset of the required objects on the index, so it usually achieves better performance than predicate locks
+               - if index not available, the db locks on the entire table
      - Serializable Snapshot Isolation (SSI)
           - a fairly new idea that's been implemented by both single node and distributed db
           - optimistic concurrency control: based on snapshot isolation, don't block until commit time to detect serialization conflicts
           - idea: make sure to detect if read is stale -- abort if it's the case
                - case 1: detecting read of stale MVCC objects
+                    ![detecting read of stale MVCC objects example](images/ddia-7-10.png)
                     - event sequence: A reads, A writes, B reads (reads a stale MVCC obj), B writes, A commits, B aborts
                     - transaction monitor detects B reading uncommitted change
-                    - wait for commit time to decide whether OK or abort, because A might have aborted, and doesn't know if A is a read
+                    - wait for commit time to decide whether OK or abort, because A might have aborted or B could be just read-only
                - case 2: detecting write that affects previous read
+                    ![detecting write that affects previous read example](images/ddia-7-11.png)
                     - event sequence: A reads, B reads, A writes (notify B), B writes (notify A), A commits, B aborts
                     - use index-range lock (or similar mechanisms) to detect and notify each other
                     - db only needs to remember what data has been read until all concurrent transactions are done
@@ -482,7 +485,7 @@ Chapter 4 Encoding and Evolution
                - better than pessimistic when load is not too high; otherwise causes too many retries that worsen the load
                - also depends on implementation details like tracking granularity that affects overhead
                - can expand to replicas and partitions, achieving high throughput
-               - response time less variable, but long writes more likely to meet a conflict and abort
+               - response time less variable -- reads run on consistent snapshots without locks so it's good for read-heavy applications, but long writes more likely to meet a conflict and abort
 
 Chapter 8 The Trouble with Distributed Systems
 - unreliable networks
