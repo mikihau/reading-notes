@@ -393,7 +393,7 @@ Chapter 4 Encoding and Evolution
           - in effect, readers never block writers, and writers never block readers
           - ways indexes work for a multi-version db
                - can have index pointing to all versions of the object, and filter by visibility given the transactionId, then garbage collects the index entries together with old versions
-               - use append-only, copy-on-write B-tree (similar to git) for the entire db -- each transaction creates a new tree root; also needs garbage collection
+               - use append-only, copy-on-write B-tree (similar to [git](https://github.blog/2020-12-17-commits-are-snapshots-not-diffs/)) for the entire db -- each transaction creates a new tree root; also needs garbage collection
      - preventing lost updates
           - examples of read-modify-write: account balance read then update, adding an item to a list of JSON, concurrently editing wiki articles (save the entire document)
           - atomic write operations
@@ -473,7 +473,7 @@ Chapter 4 Encoding and Evolution
                - case 1: detecting read of stale MVCC objects
                     ![detecting read of stale MVCC objects example](images/ddia-7-10.png)
                     - event sequence: A reads, A writes, B reads (reads a stale MVCC obj), B writes, A commits, B aborts
-                    - transaction monitor detects B reading uncommitted change
+                    - transaction monitor detects B reading uncommitted change made by A
                     - wait for commit time to decide whether OK or abort, because A might have aborted or B could be just read-only
                - case 2: detecting write that affects previous read
                     ![detecting write that affects previous read example](images/ddia-7-11.png)
@@ -487,7 +487,7 @@ Chapter 4 Encoding and Evolution
                - can expand to replicas and partitions, achieving high throughput
                - response time less variable -- reads run on consistent snapshots without locks so it's good for read-heavy applications, but long writes more likely to meet a conflict and abort
 
-Chapter 8 The Trouble with Distributed Systems
+#### Chapter 8 The Trouble with Distributed Systems
 - unreliable networks
      - can't distinguish: bad outgoing network, bad recipient, or bad incoming network
      - detecting faults
