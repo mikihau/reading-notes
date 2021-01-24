@@ -489,17 +489,22 @@ Chapter 4 Encoding and Evolution
 
 #### Chapter 8 The Trouble with Distributed Systems
 - unreliable networks
-     - can't distinguish: bad outgoing network, bad recipient, or bad incoming network
+     - can't distinguish between: bad/slow outgoing network, unavailable recipient, busy receipient (load spike or doing GC), or bad/slow incoming network
      - detecting faults
-          - timeout
-          - some explicit msg: port refuse to connect, switch at physical level, router reply, node notification -- but all unreliable
+          - timeout is the most general way to detect faults
+          - sometimes there are explicit messages: if process crashes the os may send RST/FIN TCP packet or even notify other nodes, may be access network switches at physical level etc
      - timeout
-          - if too low, might be false positive, overloading the entire system which is already overloaded
-          - can choose timeout by experiments and/or autoadjust
-     - queuing
-          - network congestion, recipient CPU busy, recipient is virtual machine in context switching, TCP flow control (to avoid congestion)
-     - unbounded delays
-          - unlike phone calls that establish preset channel, TCP is designed to handle bursty transfers, resulting in unbounded delays
+          - if too low, might be false positive, overloading the entire system which is already overloaded, or premature failover leading to an action performed twice
+          - unlike telephone lines that establish a preset channel end-to-end for each session (bounded delay), TCP is designed to handle bursty traffic, resulting in unbounded delays
+          - can choose timeout by experiments and/or auto-adjust with jitter
+     - network congestion and queuing
+          - causes
+               - if multiple senders send packets to the same desination, a network switch has to queue them up and feed them one by one into the destination link, or dropping packets if the queue is full
+               - a destination machine with busy CPU cores queues incoming requests from network (by the OS) until the application is ready to handle it
+               - an VM monitor buffers/queues incoming data from network when another VM tenant uses the CPU core
+               - TCP performs flow control so queueing may happen at the sender (even before data enters the network)
+               - TCP auto-transmits packets that timeout, resulting in increase in observed delay
+           - in public clouds and multi-tenant datacenters, network links/switches are shared (or even network interface+CPUs are shared in VMs), noisy neighbor can consume lots of resources (e.g. MapReduce batch workloads)
 - unreliable clocks
      - time-of-day clocks
           - synchronized via NTP (Network Time Protocol), may jump back
