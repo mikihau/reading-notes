@@ -508,20 +508,30 @@ Chapter 4 Encoding and Evolution
 - unreliable clocks
      - time-of-day clocks
           - synchronized via NTP (Network Time Protocol), may jump back
+          - not suitable to measure elapsed time since it may jump back
      - monotonic clocks
-          - always move forward, can check for intervals, but absolute value meaning different things on different servers
-          - separate timer per CPU, but tried to provide monotonic view when jobs get scheduled to different cpus
-     - clock synchronization: problems like NTP firewalled/misconfigured, VM view, and leap seconds can affect accuracy
+          - always move forward, but absolute value meaning different things on different servers (even CPUs on the same server)
+          - NTP may adjust how fast it moves forward
+          - suitable to measure elapsed time to the microseconds
+     - possible issues with clock synchronization
+          - servers have clock drifts up to 17 seconds/day if synchronized once per day, so the clock may jump back or leap forward
+          - NTP firewalled/misconfiguration makes servers unable to synchronize for a long time
+          - synchronization accuracy itself is limited by internet delay, and in the case of congestion the client may abort synchronization 
+          - NTP servers may or may not smear the leap second, since some systems are not aware of the leap second
+          - VM sees virtualized clock, and the hypervisor context switch results in VMs seeing clocks jumping forward
+          - if app run on a device you don't control (someone else's phone) the time may be intentionally wrong
      - relying on synchronized clock
-          - should monitor closely because it's subtle and hard to detect
+          - if an application relies on synchronized clocks, it should monitor clock drifts closely because it causes subtle failures
           - e.g. timestamps for ordering events
-               - multi leader db propagates writes to follower, by "last write wins" principle, the write on faster clock wins, causing dropped writes
-               - NTP doesn't solve the problem because NTP itself has internet delay
+               - multi leader db propagates writes to follower, by "last write wins" principle, the write on faster clock wins, causing dropped writes from the lagging clock
+               - LWW dbs can't distinguish between writes happen in quick succession, or truly concurrent ones -- has to use version vectors to track causality
+               - may have two requests with the same timestamp (on different machines), so LWW dbs need a tiebreaker rule
+               - NTP doesn't solve the problem because NTP itself has internet delay so it's accuracy is limited
                - can use logical clocks instead of time-of-day clock or monotonic clock
           - clock reading have a confidence interval, but no way to estimate the interval
-               - for snapshot isolation, generating a monotonically increasing id becomes a bottleneck
-               - for Google's Spanner implementation, wait for the confidence interval before commit read-write transactions to make sure the reads transactions don't overlap with the read-write transaction
-     - process pausees
+               - for snapshot isolation in a distributed db, generating a monotonically increasing transaction ids becomes a bottleneck (for a single instance db a counter is sufficient)
+               - Google's Spanner implementation waits for the confidence interval before commit read-write transactions to make sure the read transactions don't overlap with the read-write transaction
+     - process pauses
           - possible reasons
                - garbage collection stops the world (can spend up to minutes)
                - on virtual machines, can get suspended and restarted for live migration
