@@ -532,7 +532,7 @@ Chapter 4 Encoding and Evolution
                - for snapshot isolation in a distributed db, generating a monotonically increasing transaction ids becomes a bottleneck (for a single instance db a counter is sufficient)
                - Google's Spanner implementation waits for the confidence interval before commit read-write transactions to make sure the read transactions don't overlap with the read-write transaction
      - process pauses
-          - example: get incoming request -> check if lease expiry is at least 10 seconds later otherwise renew lease -> if lease is valid (if thread is preempted here for over 10 seconds, it'll process the request with an expired lease), process request
+          - example: get incoming request -> check if lease expiry is at least 10 seconds later otherwise renew lease -> if lease is valid (if thread is preempted here for over 10 seconds, it'll process the request with an expired lease), process request (solution: use a fencing token on the server side)
           - possible causes
                - garbage collection stops the world (can spend up to minutes)
                - on virtual machines, can get suspended and restarted for live migration
@@ -546,7 +546,8 @@ Chapter 4 Encoding and Evolution
 - knowledge, truth and lies
      - truth is defined by majority
           - problem: a node gets stopped by GC when lease expires, meanwhile another node gets lease and writes data. after first node comes back it tries to write -- then data corrupted
-          - solution: fencing. distributes an increasing fencing id to each lock holder, and server rejects updates from older fencing id
+          - solution: fencing. The distributed locking service distributes an increasing fencing id to each lock holder, and server rejects updates from older fencing id.
+          ![server checks the fencing token before accepting requests](images/ddia-8-5.png)
      - byzantine faults
           - faults when some nodes are malicious or working deliberately incorrectly
           - used in aerospace environments (radiation breaks memory) or multi-party (bitcoin), but too expensive in other places
