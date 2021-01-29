@@ -532,17 +532,17 @@ Chapter 4 Encoding and Evolution
                - for snapshot isolation in a distributed db, generating a monotonically increasing transaction ids becomes a bottleneck (for a single instance db a counter is sufficient)
                - Google's Spanner implementation waits for the confidence interval before commit read-write transactions to make sure the read transactions don't overlap with the read-write transaction
      - process pauses
-          - possible reasons
+          - example: get incoming request -> check if lease expiry is at least 10 seconds later otherwise renew lease -> if lease is valid (if thread is preempted here for over 10 seconds, it'll process the request with an expired lease), process request
+          - possible causes
                - garbage collection stops the world (can spend up to minutes)
                - on virtual machines, can get suspended and restarted for live migration
                - on laptops, can get suspended when user closes down the laptop
                - operating system context switch
-               - wait for disk IO (if disk is via network then even more delay)
-               - frequent swapping to disk (thrashing)
+               - unexpected wait for disk IO (if disk is via network then even more delay)
+               - os's frequent swapping to disk (thrashing)
                - getting SIGSTOP and SIGCONT signals (e.g. CTRL-Z)
-          - preempts process to stop at any arbitrary time, and process does not know
           - there are real-time response guarantees for life-critical embedded systems, but it's expensive and limited
-          - to reduce GC impacts, can either treat GC as a maintenance and have other nodes take over during the time,  or periodically restart nodes like rolling upgrades
+          - tricks to reduce GC impacts: treat GC as planned maintenance time and have other nodes take over during GC, or use GC for short-lived objects that are fast to collect then periodically restart nodes like rolling upgrades
 - knowledge, truth and lies
      - truth is defined by majority
           - problem: a node gets stopped by GC when lease expires, meanwhile another node gets lease and writes data. after first node comes back it tries to write -- then data corrupted
