@@ -550,23 +550,24 @@ Chapter 4 Encoding and Evolution
           ![server checks the fencing token before accepting requests](images/ddia-8-5.png)
      - byzantine faults
           - faults when some nodes are malicious or working deliberately incorrectly
-          - used in aerospace environments (radiation breaks memory) or multi-party (bitcoin), but too expensive in other places
+          - used in aerospace environments (radiation corrupts memory) or peer-to-peer (bitcoin), but too expensive in other places
           - because all/most nodes runs the same software, byzantine fault tolerant algos won't save the situation
-          - can put sanity checks: checksums in application level protocol, sanitize inputs, multiple NTP addresses
-     - system model and reality (theoretical vs implementation)
+          - weaker corruptions can be saved by sanity checks: checksums in application level protocol, sanitizing inputs, using multiple NTP server addresses
+     - system model used to design a distributed algorithm, and reality
           - timing models
-               - synchronous model: bounded network delay, clock error, process pauses -- unrealistic
+               - synchronous model: bounded network delay, clock error, and process pauses -- unrealistic
                - partially synchronous model: bounded most of the time but occasionally can be bad -- realistic
                - asynchronous model: no timing assumptions (can't use clock at all) -- restrictive
-          - system models
+          - system failure models
                - crash-stop faults: when faults happen, node crashes and never comes back
-               - crash-recovery faults: after crash, takes some unknown time to come back -- disk gets persisted, and memory doesn't
-               - byzantine faults: nodes to anything including deceiving
+               - crash-recovery faults: after crash, takes some unknown time to come back -- assumes that disk gets persisted between crashes, and memory doesn't
+               - byzantine faults: nodes can do anything including deceiving
           - evaluating distributed algos
                - correctness -- listing properties of an algo and make sure it behaves this way
-               - safety and liveliness
-                    - safety: something always hold, and no bad things happen because once a damage is done there's no going back
-                    - liveliness: something eventually happens (e.g. eventual consistency)
+               - e.g. generating fencing tokens requires these properties to be correct: uniqueness, monotonically increasing, availability (a node requesting a token eventually receives a response)
+               - safety and liveliness properties
+                    - safety: something that always hold, and no bad things happen because once a damage is done there's no going back
+                    - liveliness: something that eventually happens (e.g. eventual consistency)
                - models are simplifications of reality (implementation) but nevertheless provides great insights
 
 Chapter 9 Consistency and Concensus
