@@ -570,9 +570,10 @@ Chapter 4 Encoding and Evolution
                     - liveliness: something that eventually happens (e.g. eventual consistency)
                - models are simplifications of reality (implementation) but nevertheless provides great insights
 
-Chapter 9 Consistency and Concensus
-- Linearizability
-     - the illusion that there's only 1 copy of data, and all operations on it is atomic -- once an operation is executed, all subsequent operations conforms with it -- no going back
+#### Chapter 9 Consistency and Concensus
+- eventual consistency is a weak consistency guarantee, since you can't assume when the data is available to read after the write
+- linearizability (a.k.a. strong consistency/immediate consistency/atomic consistency)
+     - provides the illusion that there's only 1 copy of data, and all operations on it is atomic -- once an operation is executed, all subsequent operations conforms with it -- no going back
      - is a recency guarantee -- concurrent operations may be either old or new value, but subsequent ones are all new vals
      - examples that relies on linearizability
           - distributed locking and leader selection: the lock needs to be on  linearizable datastroe
