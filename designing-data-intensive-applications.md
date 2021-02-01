@@ -573,20 +573,26 @@ Chapter 4 Encoding and Evolution
 #### Chapter 9 Consistency and Concensus
 - eventual consistency is a weak consistency guarantee, since you can't assume when the data is available to read after the write
 - linearizability (a.k.a. strong consistency/immediate consistency/atomic consistency)
-     - provides the illusion that there's only 1 copy of data, and all operations on it is atomic -- once an operation is executed, all subsequent operations conforms with it -- no going back
-     - is a recency guarantee -- concurrent operations may be either old or new value, but subsequent ones are all new vals
-     - examples that relies on linearizability
-          - distributed locking and leader selection: the lock needs to be on  linearizable datastroe
-          - uniqueness guarantee/constraints in distributed db: like a "lock" on the unique value
-          - multi channel timing dependencies: if more than 1 channel to communicate, e.g. message queue should happen after db store, if db is not linearizable, the msg queue processing that depends on data being there might find the data not there
+     - definition
+          - provides the illusion that there's only 1 copy of data, and all operations on it is atomic -- once an operation is executed, all subsequent operations conforms with it -- no going back
+          - is a recency guarantee -- concurrent operations may be either old or new value, but subsequent ones are all new vals
+          - think of it as being able to find points in time for all executions of read, write, and cas
+            ![linearizability example](images/ddia-9-4.png)
+     - not to be confused with with serializability (an isolation guarantee on transactions)
+          - 2PL and actual serial execution is linearizable
+          - serializable snapshot isolation is not linearizable because reads were on older snapshots
+     - examples that rely on linearizability
+          - distributed locking and leader selection: the lock needs to be implemented on a linearizable datastore (e.g. etcd, zookeeper)
+          - uniqueness constraints in a distributed db: like a "lock" on the username, or a cas to set the username to the id if it's not taken; also account balance, stock level, seat occupancy (single up-to-date value that all nodes agree on)
+          - multi channel timing dependencies: e.g. store to object store, send to message queue, server receives the message and pull object from the store; the message queue has a race with object store's internal replication. Solution: use linearizable object store (after the write is done, read is guaranteed to see the write result), or use any "read your own write" solutions
      - implementation
           - single leader -- might be linearizable
-               - only if read from master too, but it's not when failover (could even lose data), or having split brain
+               - might be linearizable only if reads also come from the leader (but not if using snapshot isolation); but not linearizable when failover (could even lose data), or having split brain
           - multi leader -- is not linearizable because of the async nature
           - leaderless -- almost never linearizable
-               - even when strict quorum (w + r > n), due to network latency, when 2 reads concurrent when a write, a former read may still see new value when a later read sees old value
                - sloppy quorum violates linearizability, and LWW (last write wins) relies on time-of-day clocks which is nonlinearizable
-          - linearizable algos -- the only guarantee
+               - even when strict quorum (w + r > n), when a write is in progress (due to network latency) with 2 reads reading from different sets of quoroms, the first read may see the new value when the later read sees old value
+          - concensus algorithmss -- linearizable (e.g. etcd and zookeeper)
      - the cost of linearizability
           - the CAP theorem
                - when network partitioning happens (some nodes detached from network), either db is available but not linearizable/consistent, or db is linearizable but not all available
