@@ -574,7 +574,7 @@ Chapter 4 Encoding and Evolution
 - eventual consistency is a weak consistency guarantee, since you can't assume when the data is available to read after the write
 - linearizability (a.k.a. strong consistency/immediate consistency/atomic consistency)
      - definition
-          - provides the illusion that there's only 1 copy of data, and all operations on it is atomic -- once an operation is executed, all subsequent operations conforms with it -- no going back
+          - provides the illusion that there's only 1 copy of data, and all operations on it is atomic -- once an operation is executed, all subsequent (non-overlapping in time) operations conforms with it -- no going back
           - is a recency guarantee -- concurrent operations may be either old or new value, but subsequent ones are all new vals
           - think of it as being able to find points in time for all executions of read, write, and cas
             ![linearizability example](images/ddia-9-4.png)
@@ -583,7 +583,7 @@ Chapter 4 Encoding and Evolution
           - serializable snapshot isolation is not linearizable because reads were on older snapshots
      - examples that rely on linearizability
           - distributed locking and leader selection: the lock needs to be implemented on a linearizable datastore (e.g. etcd, zookeeper)
-          - uniqueness constraints in a distributed db: like a "lock" on the username, or a cas to set the username to the id if it's not taken; also account balance, stock level, seat occupancy (single up-to-date value that all nodes agree on)
+          - uniqueness constraints in a distributed db: like a "lock" on the username, or a cas to set the username to the id if it's not taken; also account balance, warehouse stock level, seat occupancy (single up-to-date value that all nodes agree on)
           - multi channel timing dependencies: e.g. store to object store, send to message queue, server receives the message and pull object from the store; the message queue has a race with object store's internal replication. Solution: use linearizable object store (after the write is done, read is guaranteed to see the write result), or use any "read your own write" solutions
      - implementation
           - single leader -- might be linearizable
@@ -596,25 +596,28 @@ Chapter 4 Encoding and Evolution
      - the cost of linearizability
           - the CAP theorem
                - when network partitioning happens (some nodes detached from network), either db is available but not linearizable/consistent, or db is linearizable but not all available
-               - e.g. think of multi leader db in separate datacenters, available but 2 dc not consistent
+               - e.g. think of multi leader db in separate datacenters, when partitioning happens, system is available but 2 datacenters are not consistent
                - e.g. for single leader db, when network is partitioned, the partition without the leader can't accept writes
-          - linearizable systems' response time at least proportional to network uncertainly, so performance is a big issue
+          - even RAM on CPUs isn't linearizable: one CPU changes main memory, and another reads shortly afterwards, it may not see the change, since it has cache fronting it
+          - linearizable systems' response time is at least proportional to the uncertain network latency, so performance is a big issue
           - most dbs don't have linearizability, some has weaker consistency models
 - ordering guarantees
-     - causality consistent: a system that obeys the rule of causality
-     - weaker than linearizability, but doesnt' have the coordination overhead, and less sensitive to network problems
      - ordering and causality
-     - causal order is not a total order
-          - total order: everything can be ordered; partial order: some items can't be ordered
-          - a linearizable system: total order because there has to be a point where things happen atomically
-          - a causality consistent system: partially ordered because there are concurrent requests
-     - linearizability is stronger than causal consistency
-          - linearizable system preserves causal consistency, but performance takes a hit
-          - causal consistency is the strongest consistency level that doesn't hurt performance when network is bad
-     - implementation for causal consistency
-          - to preserve causality is to know which happens before which, and make sure it happens in all replicas
-          - to know the partial ordering, similar to detecting concurrent writes, not only to single objects, but across the entire table
-          - can use generalized version vectors
+          - causality consistency
+               - a system is causally consistent if it obeys the ordering imposed by causality, e.g. snapshot isolation provides causality consistency (can see all data precedes it)
+               - weaker than linearizability, but it doesnt' have the coordination overhead, and it less sensitive to network problems
+          - causal order is not a total order
+               - total order: everything can be ordered, e.g. natural numbers; partial order: some items can't be ordered, e.g. sets
+               - e.g. git's commits tracks the causal orderings, branches and merges make it not a total order
+               - a linearizable system: total order because there has to be a point when each operation happens atomically
+               - a causality consistent system: partially ordered because you can't tell which happens before for concurrent requests
+          - linearizability is stronger than causal consistency
+               - linearizable system automatically preserves causal consistency, but performance takes a hit
+               - causal consistency is the strongest consistency level that doesn't hurt performance due to network delays, and available in network failures
+          - implementation for causal consistency (for nonlinearizable systems)
+               - to preserve causality, the db needs to know and track which happens before which, and make sure it happens in all replicas
+               - keeping track of partial ordering can be done similar to detecting concurrent writes and serializable snapshot isolation -- needs to track which version of data is read by the application
+               - can track this not only on single objects, but across the entire table with generalized version vectors
      - sequence number ordering
           - assign sequence numbers (a.k.a logical timestamps) to operations to create a total ordering (concurrent ones assigned arbitrarily) --> consistent with causality, especially single leader so that follower follows leader causally
           - if not single leader (either partitioned or multi/leaderless), ways to generate sequence numbers:
