@@ -619,28 +619,28 @@ Chapter 4 Encoding and Evolution
                - keeping track of partial ordering can be done similar to detecting concurrent writes and serializable snapshot isolation -- needs to track which version of data is read by the application
                - can track this not only on single objects, but across the entire table with generalized version vectors
      - sequence number ordering
-          - assign sequence numbers (a.k.a logical timestamps) to operations to create a total ordering (concurrent ones assigned arbitrarily) --> consistent with causality, especially single leader so that follower follows leader causally
-          - if not single leader (either partitioned or multi/leaderless), ways to generate sequence numbers:
+          - useful to assign sequence numbers (a.k.a logical timestamps) to operations to create a total ordering that's consistent with causality (concurrent ones assigned arbitrarily)
+          - single leader's replication log number is a total ordering consistent with causality. if not single leader (either partitioned or multi/leaderless), ways to generate noncausal sequence numbers:
                - each node generates its own, preserve some bits to indicate node numbers
                - attach number with time-of-day clock if resolution is accurate enough
-               - preallocate blocks of range for different nodes
-               -> scalable, but none of them preserves causality in their ordering
-          - can use the Lamport timestamps to do a total ordering of events on distributed system
-               - Lamport timestamps are pairs (counter, nodeID) -- compare counter, if counter are same, compare nodeID
+               - preallocate blocks of range for different nodes, reassign new blocks when current range runs low
+               -> these are all scalable, but none of them preserves causality in their ordering
+          - can use the Lamport timestamps to do a total ordering of events on a distributed system
+               - Lamport timestamps are pairs (counter, nodeID) -- first compare counter, if counter are same, compare nodeID
                - for each request, node increment the counter id by 1 over the id sent by client
-               - for each request, client keeps the max counter id replied from nodes, and include that in the next request
-               - by client sending requests to different nodes, its id essentially syncs the order happens around all nodes (max of all nodes)
+               - for each request, client keeps the max counter id replied from nodes (seen so far), and include that in the next request
+               - by client sending requests to different nodes, its id essentially syncs the order happening around all nodes (max of all nodes)
                - concurrent operations on different nodes may have the same counter but different nodeID
           - timestamp ordering (like Lamport) is not sufficient
-               - because the total ordering is finalized after all ids are collected
-               - for unique constraints problem, two concurrent operations can't know what the other nodes are doing at that point (if do so synchronously then if some node goes down the system fails)
-               - need to use broadcasting to know when the ordering is finalized
+               - because the total ordering is finalized _after_ all ids are collected, at the time of request you don't know if other nodes are doing anything concurrent
+               - e.g. for unique constraints problem, two concurrent operations can't know what the other nodes are doing at that point (if asking all nodes synchronously, then if some node goes down the system stops)
+               - need to use broadcasting to know _when_ the ordering is finalized
         - total order broadcast
-           - a protocol for nodes to exchange messages
-           - 2 properties always satisfied
-                 - reliably delivered to all nodes
+           - a single leader (single partition only) can determine a total ordering, but the challenge is to scale beyond 1 leader can handle, and handling leader failover
+           - a protocol for nodes to exchange messages, requiring 2 properties always satisfied
+                 - reliably delivered to all nodes (if a msg is delivered to 1 node, it's delivered to all nodes)
                  - totally ordered delivery (all nodes receives msg in the same order)
-            - if node faulty, no msg delivered but when it's back, deliveries gets retried and in the same order
+            - if node/network is faulty, no msg is delivered but when it's back, deliveries gets retried and in the same order
             - uses of total order broadcast
                  - db replication (msg as writes to db, all nodes gets them all and gets them ordered) -- state machine replication
                  - like creating a log -- each msg sent is to append to the log, so log is ensured to be the same order on every node
