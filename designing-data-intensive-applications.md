@@ -648,12 +648,15 @@ Chapter 4 Encoding and Evolution
                  - implement serializable transactions -- each msg represents a stored procedure for each replica to execute
                  - like creating a log -- each msg delivered is to append to the log, so log is ensured to be the same order on every node
                  - lock service for fencing tokens -- the order that the service arrives are kept in sequence ids, which can be tokens
-            - implementing linearizable storage using total order broadcast (strong link between total order broadcast and linearizability)
+            - implementing linearizable compare-and-set using total order broadcast (strong link between total order broadcast and linearizability)
                - uniqueness constraints can be modeled as compare-and-set(null, username) on all possible usernames on linearizable storage
                - use total order broadcast as a log: append to the log tentatively taking the username; read the log to wait for the msg to get back; commit if the first log entry taking the username is your own, otherwise abort
                - write is linearizable, but read is not if reading from an async updated replica
                     - to make read linearizable, read from a sync replica, perform the read when the message is delivered back, or query for the log position and wait for all previous log to arrive to perform the read
             - Implementing total order broadcast using linearizable storage (strong link between total order broadcast and linearizability)
+               - assume a linearizable store of an integer, for each outgoing message, increment-and-get the integer as the sequence number, and send to client with resend
+               - since sequence number has no gaps, client can know to wait for a missing sequence number if got another later message
+               - doesn't work if node fails for network is interrupted -- need concensus
 - distributed transactions and consensus
           - problem: get nodes to agree on something -- actually pretty hard
           - used in situations like leader selection (and reselection in failover) and distributed atomic commit
