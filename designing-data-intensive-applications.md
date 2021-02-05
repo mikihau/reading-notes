@@ -640,13 +640,20 @@ Chapter 4 Encoding and Evolution
            - a protocol for nodes to exchange messages, requiring 2 properties always satisfied
                  - reliably delivered to all nodes (if a msg is delivered to 1 node, it's delivered to all nodes)
                  - totally ordered delivery (all nodes receives msg in the same order)
-            - if node/network is faulty, no msg is delivered but when it's back, deliveries gets retried and in the same order
+            - notes
+               - if node/network is faulty, no msg is delivered but when it's back, deliveries gets retried and in the same order
+               - the order of the messages is fixed upon delivering; no retroactively insert to a earlier position
             - uses of total order broadcast
                  - db replication (msg as writes to db, all nodes gets them all and gets them ordered) -- state machine replication
-                 - like creating a log -- each msg sent is to append to the log, so log is ensured to be the same order on every node
+                 - implement serializable transactions -- each msg represents a stored procedure for each replica to execute
+                 - like creating a log -- each msg delivered is to append to the log, so log is ensured to be the same order on every node
                  - lock service for fencing tokens -- the order that the service arrives are kept in sequence ids, which can be tokens
-            - implementing linearizable storage using total order broadcast
-            - Implementing total order broadcast using linearizable storage
+            - implementing linearizable storage using total order broadcast (strong link between total order broadcast and linearizability)
+               - uniqueness constraints can be modeled as compare-and-set(null, username) on all possible usernames on linearizable storage
+               - use total order broadcast as a log: append to the log tentatively taking the username; read the log to wait for the msg to get back; commit if the first log entry taking the username is your own, otherwise abort
+               - write is linearizable, but read is not if reading from an async updated replica
+                    - to make read linearizable, read from a sync replica, perform the read when the message is delivered back, or query for the log position and wait for all previous log to arrive to perform the read
+            - Implementing total order broadcast using linearizable storage (strong link between total order broadcast and linearizability)
 - distributed transactions and consensus
           - problem: get nodes to agree on something -- actually pretty hard
           - used in situations like leader selection (and reselection in failover) and distributed atomic commit
