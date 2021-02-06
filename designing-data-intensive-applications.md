@@ -658,9 +658,11 @@ Chapter 4 Encoding and Evolution
                - since sequence number has no gaps, client can know to wait for a missing sequence number if got another later message
                - doesn't work if node fails for network is interrupted -- need concensus
 - distributed transactions and consensus
-          - problem: get nodes to agree on something -- actually pretty hard
-          - used in situations like leader selection (and reselection in failover) and distributed atomic commit
-          - single node commit
+     - problem: get nodes to agree on something -- actually pretty hard
+     - scenarios requiring consensus
+          - leader selection (and reselection in failover) 
+          - atomic commit: decide to commit or abort in distributed transactions, but if one node votes no, all need to abort
+     - single node commit
                - write data (write ahead log), then write the commit record
                - when crash before commit record, recover from WAL; if crash after commit record, it's considered done
           - challenges for mutli node transactions
