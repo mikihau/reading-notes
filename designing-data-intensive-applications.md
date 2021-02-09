@@ -660,28 +660,31 @@ Chapter 4 Encoding and Evolution
 - distributed transactions and consensus
      - problem: get nodes to agree on something -- actually pretty hard
      - scenarios requiring consensus
-          - leader selection (and reselection in failover) 
+          - leader selection (and reselection in failover): agree on any leader
           - atomic commit: decide to commit or abort in distributed transactions, but if one node votes no, all need to abort
-     - single node commit
-               - write data (write ahead log), then write the commit record
-               - when crash before commit record, recover from WAL; if crash after commit record, it's considered done
+     - automic commit and Two-Phase Commit (2PC)
+          - single node commit is implemented by the storage engine
+               - first write data (write ahead log), then write a commit record to the WAL
+               - critical moment to decide if commit or abort: the moment when the disk finishes writing the commit record
+               - when crash happen before writing commit record, abort; if crash after the commit record, it's considered committed
           - challenges for mutli node transactions
-               - if ask to commit, individual partitions/obj can fail, leaving partially committed state
-               - fail reasons: partition detects constraint violation/conflict, commit msg lost in network, nodes may crash before commit record written
-               - no way to recover once commits, because data is available to subsequent transactions
-          - 2 Phase Commit
+               - if simply ask each node to commit, some individual partitions/nodes/obj can fail, leaving partially committed state, voilating atomicity
+               - possible reasons for violation of atomicity: a node detects constraint violation/conflict and need to abort, some commit msg lost in network and eventually need to abort due to timeout, nodes may crash before commit record written
+               - once data is committed, there's no way to retract it, since data is available to subsequent transactions, so we need commit to happen only once per node when other nodes can commit
+          - Two-Phase Commit (2PC)
                - the most common distributed transactions implementation
-               - there's a transaction coordinator
-               - before the transaction, ask coordinator for globally unique transaction ID
-               - first each partition to read/write data as normal (abort can happen) -- start holding locks
-               - then coordinator send prepare msg to each node (if requests time out or fails, send abort to all nodes)
-               - nodes write to disk and check for conflicts etc, then answer "yes" or "no"
-               - then coordinator makes a decision, write the commit record (the commit point)
-               - coordinator sends "commit" (or abort) requests to each node (if request time out, keep trying until get an answer) -- nodes release locks after commit
+               - there's a transaction coordinator implemented as a library in the client, or as a separate process/service
+               - step 1: before the transaction, ask coordinator for globally unique transaction ID
+               - step 2: each partition to read/write data as normal (aborts can happen) -- start holding locks
+               - step 3: coordinator send "prepare" msg to each node (if any request time out or fails, send abort to all nodes)
+               - step 4: nodes write to disk and check for conflicts etc, then answer "yes" or "no" (once voted yes, it has to commit in all occasions no matter what)
+               - step 5: the coordinator makes a decision, write the commit record (the commit point)
+               - step 6: coordinator sends "commit" (or abort) requests to each node (if request time out, keep trying until get an answer) -- nodes release locks after commit
           - coordinator failure
-               - if coordinator fails after sending out prepare requests, participants can't abort nor commit individually
-               - can only wait for coordinator to answer -- when coordinator comes back, check its own transaction log, and if there's no commit record, abort
-          - there's a 3 phase commit for nonblocking distributed commits, but it assumes bounded time so unrealistic
+               - if coordinator fails after sending out prepare requests, participants can't abort nor commit on their own since they don't know the decision of the coordinator
+               - coordinator has to write the decision to its own transaction log before sending out the decision of commit or abort
+               - participants can only wait for coordinator to answer -- when coordinator comes back, check its own transaction log, and if there's no commit record, abort
+          - there's a 3 phase commit for nonblocking distributed commits, but it assumes bounded time so it's not useful in common scenarios
      - distributed transactions in practice
           - most dbs don't choose to implement distributed transactions for performance and other troubles except for SQL-series
           - 2 types of distributed transactions
