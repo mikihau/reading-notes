@@ -686,18 +686,18 @@ Chapter 4 Encoding and Evolution
                - participants can only wait for coordinator to answer -- when coordinator comes back, check its own transaction log, and if there's no commit record, abort
           - there's a 3 phase commit for nonblocking distributed commits, but it assumes bounded time so it's not useful in common scenarios
      - distributed transactions in practice
-          - most dbs don't choose to implement distributed transactions for performance and other troubles except for SQL-series
+          - most dbs don't choose to implement distributed transactions for performance and operational troubles except for SQL-series
           - 2 types of distributed transactions
-               - db-internal: a db that offers replication&partition natively -- works ok
-               - heterogenous: 2+ different technologies, e.g. atomic commit for db + message broker
+               - db-internal: a db that offers replication & partition natively -- works ok
+               - heterogenous: 2+ different technologies, e.g. atomic commit for db + message broker -- challenging
           - exactly-once msg processing
-               - commit the msg acknowledgement and db write (and other side effects) in a single atomic trasaction
-               - if either one failed (aborted), the entire transaction gets aborted, and retried
+               - example of a heterogeneous distributed transaction: commit the msg acknowledgement (from message broker) and db write (and other side effects) in a single atomic transaction
+               - effectively exactly-once processing: if either one failed (aborted), the entire transaction gets aborted with no side effects, so that it can be retried
                - requires each component/side effect to support the same atomic commit protocol
           - XA transactions
-               - an API implemented by the transaction coordinator and the db/message components
+               - standard for implementing heterogeneous two-phase commit; an API implemented for interfacing with the transaction coordinator
                - calls for components to know if they're part of a distributed transaction, and callbacks for prepare, commit, abort
-               - if coordinator process or the server it's on crashes, then server must be restarted to see the transaction log on disk
+               - in practice coordinator is on the same machine of the application; if coordinator process or the server it's on crashes, then server must be restarted to see the transaction log on disk
           - issue for distributed 2pc transactions
                - because components/db hold lock while in doubt, it takes long when coordinator crashes -- sometimes forever the coordinator's log is lost
                - meanwhile other transactions gets blocked -- can't write those locked records (for some db can't even read)
