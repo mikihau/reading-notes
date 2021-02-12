@@ -667,7 +667,7 @@ Chapter 4 Encoding and Evolution
                - first write data (write ahead log), then write a commit record to the WAL
                - critical moment to decide if commit or abort: the moment when the disk finishes writing the commit record
                - when crash happen before writing commit record, abort; if crash after the commit record, it's considered committed
-          - challenges for mutli node transactions
+          - challenges for multi node transactions
                - if simply ask each node to commit, some individual partitions/nodes/obj can fail, leaving partially committed state, voilating atomicity
                - possible reasons for violation of atomicity: a node detects constraint violation/conflict and need to abort, some commit msg lost in network and eventually need to abort due to timeout, nodes may crash before commit record written
                - once data is committed, there's no way to retract it, since data is available to subsequent transactions, so we need commit to happen only once per node when other nodes can commit
@@ -680,6 +680,7 @@ Chapter 4 Encoding and Evolution
                - step 4: nodes write to disk and check for conflicts etc, then answer "yes" or "no" (once voted yes, it has to commit in all occasions no matter what)
                - step 5: the coordinator makes a decision, write the commit record (the commit point)
                - step 6: coordinator sends "commit" (or abort) requests to each node (if request time out, keep trying until get an answer) -- nodes release locks after commit
+               ![2PC example](images/ddia-9-9.png)
           - coordinator failure
                - if coordinator fails after sending out prepare requests, participants can't abort nor commit on their own since they don't know the decision of the coordinator
                - coordinator has to write the decision to its own transaction log before sending out the decision of commit or abort
@@ -698,33 +699,42 @@ Chapter 4 Encoding and Evolution
                - standard for implementing heterogeneous two-phase commit; an API implemented for interfacing with the transaction coordinator
                - calls for components to know if they're part of a distributed transaction, and callbacks for prepare, commit, abort
                - in practice coordinator is on the same machine of the application; if coordinator process or the server it's on crashes, then server must be restarted to see the transaction log on disk
-          - issue for distributed 2pc transactions
+          - issues of distributed 2pc transactions
                - because components/db hold lock while in doubt, it takes long when coordinator crashes -- sometimes forever the coordinator's log is lost
                - meanwhile other transactions gets blocked -- can't write those locked records (for some db can't even read)
                - in practice, orphaned in-doubt transactions occur because of lost logs/software bugs, and even restarting db node doesn't resolve the problem because it still needs to hold the lock, requiring human to decide under high pressure
-               - emergency escape: let node decide unilaterally, but it breaks the atomicity promise
-          - limitations for distributed transactions
-               - the coordinator is as important as the db itself, but it's usually the single point failure
-               - a coordinator deployment changes the nature of stateless applications because it holds states
-               - XA doesn't support SSI (detecting conflicts across components) or deadlock detection (passing lock info)
-               - if any component fails, transaction fails, so it amplifies failures, defeating the purpose of fault tolerance systems
+               - emergency escape: the "heuristic decisions", letting node decide unilaterally, but it breaks the atomicity promise
+          - limitations of distributed transactions
+               - the coordinator also keeps data so it's as important as the db itself, but it's usually not implemented in a HA way so it tends to be the single point failure
+               - a coordinator deployment (together with the application service) changes the nature of stateless applications because it holds states
+               - XA has to be lowest common denominator, so it doesn't support SSI (detecting conflicts across components) or deadlock detection (passing lock info)
+               - if any single component fails, the transaction fails, so it amplifies failures, defeating the purpose of fault tolerance systems
      - fault tolerant consensus
           - formal definition: some nodes proposes values, then the quorum decides
-          - properties of consensus algo: uniform agreement, integrity (can't change mind), validity (must be a value proposed), termination (fault tolerance)
-          - algos assume fault-stop model, and more than half of nodes are functional, no byzantine faults
+          - properties of consensus algo
+               - uniform agreement
+               - integrity: no nodes decides twice
+               - validity: the decision is one of the proposed values
+               - termination: (liveness property) every node that doesn't crash eventually decides on that value -- for fault tolerance
+          - assumptions
+               - fault-stop model: assumes a node never comes back; 2PL isn't in this model because it waits for nodes to come back up
+               - more than half of nodes are functional
+               - no byzantine faults
           - total order broadcast is like multiple rounds of consensus: deciding on a total ordering of the next messages
           - the consensus algorithm
+               - the cluster has a leader; leader is unique within each epoch
                - when a leader seems dead, a new vote happen with a monotonically increasing number (the epoch number)
                - the leader that has the higher epoch number prevails
-               - then the leader makes a decision
-               - 2 rounds of voting: first to decide on a leader, then to vote on a leader's proposal
+               - then the leader makes the decision
+               - 2 rounds of voting in total: first to decide on a leader, then to vote on a leader's proposal -- there must be at least 1 overlapping node
                - great because it's fault tolerant while providing safety properties
-          - limitations of concensus
-               - requires a strictly majority to operate, so the minority partition won't be available
-               - requires a fix number of nodes to operate and a small number of nodes to tolerate
-               - relies on timeout, so if network unreliable, can stuck in leader voting longer than actually doing any job
+          - limitations of concensus: consensus algorithms are good because of its safety guarantees, fault tolerance, implementation of total order broadcast (and linearizability)
+               - consensus algorithms uses synchronous communication, but most dbs choose asynchronous even if that means committed data might be lost on failover
+               - requires a strictly majority to operate, so the minority partition won't be able to make progress
+               - requires a fix number of nodes to operate and a small number of nodes to tolerate (there is dynamic membership extensions)
+               - relies on timeout, so if network is unreliable, the cluster can stuck in leader voting longer than actually doing any job
      - membership and coordination services
-          - zookeeper's feature set
+          - zookeeper's feature set (besides consensus/total order broadcast)
                - linearizable atomic operations: the consensus algo guarantees linearizability, implemented as a lease to be available
                - total ordering of operations: can implement fencing token (for resource protection)
                - failure detection: by heartbeats with client. when session times out, locks are automatically released
