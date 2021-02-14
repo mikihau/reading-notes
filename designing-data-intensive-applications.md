@@ -671,6 +671,7 @@ Chapter 4 Encoding and Evolution
                - if simply ask each node to commit, some individual partitions/nodes/obj can fail, leaving partially committed state, voilating atomicity
                - possible reasons for violation of atomicity: a node detects constraint violation/conflict and need to abort, some commit msg lost in network and eventually need to abort due to timeout, nodes may crash before commit record written
                - once data is committed, there's no way to retract it, since data is available to subsequent transactions, so we need commit to happen only once per node when other nodes can commit
+               - 2PC is at db level; at microservice level it can be done with [saga pattern](https://microservices.io/patterns/data/saga.html)
           - Two-Phase Commit (2PC)
                - the most common distributed transactions implementation
                - there's a transaction coordinator implemented as a library in the client, or as a separate process/service
