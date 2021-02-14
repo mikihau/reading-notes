@@ -662,7 +662,7 @@ Chapter 4 Encoding and Evolution
      - scenarios requiring consensus
           - leader selection (and reselection in failover): agree on any leader
           - atomic commit: decide to commit or abort in distributed transactions, but if one node votes no, all need to abort
-     - automic commit and Two-Phase Commit (2PC)
+     - atomic commit and Two-Phase Commit (2PC)
           - single node commit is implemented by the storage engine
                - first write data (write ahead log), then write a commit record to the WAL
                - critical moment to decide if commit or abort: the moment when the disk finishes writing the commit record
