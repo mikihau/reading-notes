@@ -735,22 +735,22 @@ Chapter 4 Encoding and Evolution
                - relies on timeout, so if network is unreliable, the cluster can stuck in leader voting longer than actually doing any job
      - membership and coordination services
           - zookeeper's feature set (besides consensus/total order broadcast)
-               - linearizable atomic operations: the consensus algo guarantees linearizability, implemented as a lease to be available
-               - total ordering of operations: can implement fencing token (for resource protection)
-               - failure detection: by heartbeats with client. when session times out, locks are automatically released
-               - change notifications: clients can read locks/vals created by other clients and subscribe to them
+               - linearizable atomic operations: can implement a distributed lock (as a lease so that the lock is release in case the client fails)
+               - total ordering of operations: can implement fencing token for resource protection, since it provides zxid
+               - failure detection: client maintain periodical heartbeats with server. When session times out, locks are automatically released
+               - change notifications: clients can read locks/vals created by other clients, and subscribe to the changes, avoids polling
           - types of works the coordination service can do
-               - leader choosing
+               - choosing a leader -- zookeeper can be used to the outsource this by using only 3-5 nodes instead of thousands as in the cluster
                - detect if nodes are dead and rebalancing partitioned db
-               - zookeeper store info that's slow changing (once every minute/hour)
+               - zookeeper stores information that's slow changing (once every minute/hour)
           - service discovery
-               - which ip needs to connect to in order to reach a particular service
-               - does not need consensus, but can ask who the leader is and that requires consensus
+               - stores which ip needs to connect to in order to reach a particular service 
+               - service discovery does not need consensus (can have read-only caching replicas that services read requests and doesn't participate in voting), but can ask who the leader is and that requires consensus
           - membership services
                - deciding which nodes are alive and which are dead
                - failure detection + consensus to decide if a node is dead -- more reliable, but incorrect declarations can still happen
 
-Chapter 10  Batch Processing
+#### Chapter 10  Batch Processing
 - 3 types of systems
      - services/online systems -- response time and availability are important
      - batch processing systems (offline) -- job often scheduled, measured by throughput
