@@ -842,64 +842,64 @@ Chapter 4 Encoding and Evolution
               - in open source cluster schedulers, preemption is less widely used
 - beyond mapreduce
     - materialization of intermediate state
-          - mapreduce writes to disk for each task
-              - for a series (chained) jobs, a job can start only when previous jobs are completely finished (can with long tail)
-              - mappers usually redundant (just read the data in or something)
-              - intermediate state also stored with replication across several nodes, overkill
-         - dataflow engines
-              - more flexible ways to do jobs: operators instead of map reduce iterations, so
-              - sorting not performed if not needed, and no unnecessary map jobs
-              - data localization optimizations
-              - sufficient for intermediate state to be kept in memory or written to local disk
-          - fault tolerance
-              - not written to disk, so have some way to keeping data transformation ancestry (rdd in Spark and checkpoint operator state in Flink)
-              - deterministic is important if recompute data, so can use seed for random number generators
-          - an operator that requires sorting needs to be synchronized, but otherwise operators can be piped
+        - mapreduce writes to disk for each task
+            - for a series (chained) jobs, a job can start only when previous jobs are completely finished (can with long tail)
+            - mappers usually redundant (just read the data in or something)
+            - intermediate state also stored with replication across several nodes, overkill
+        - dataflow engines
+            - more flexible ways to do jobs: operators instead of map reduce iterations, so
+            - sorting not performed if not needed, and no unnecessary map jobs
+            - data localization optimizations
+            - sufficient for intermediate state to be kept in memory or written to local disk
+        - fault tolerance
+            - not written to disk, so have some way to keeping data transformation ancestry (rdd in Spark and checkpoint operator state in Flink)
+            - deterministic is important if recompute data, so can use seed for random number generators
+        - an operator that requires sorting needs to be synchronized, but otherwise operators can be piped
     - graphs and iterative processing
-          - graph dbs usually has iterative algos -- info propagates along edges, and repeat until some condition is met
-          - inefficient for mapreduce because each iteration is a mapreduce job even if only a small part of the graph changes
-          - solution: the pregel (bulk synchronous parallel) model: in each iteration, a function is called for each vertex and send msgs
-          - fault tolerance: periodically checkpointing (write to disk) state for all vertices, rollback and recompute is things go wrong
-          - lots of inter machine communications because no way to optimize for locality, so still not as efficient
+        - graph dbs usually has iterative algos -- info propagates along edges, and repeat until some condition is met
+        - inefficient for mapreduce because each iteration is a mapreduce job even if only a small part of the graph changes
+        - solution: the pregel (bulk synchronous parallel) model: in each iteration, a function is called for each vertex and send msgs
+        - fault tolerance: periodically checkpointing (write to disk) state for all vertices, rollback and recompute is things go wrong
+        - lots of inter machine communications because no way to optimize for locality, so still not as efficient
     - high level APIs and languages
-          - e.g. hive, pig, cascading, crunch -- less code, enables experimentation
-          - trend: move towards declarative to better optimize while having ability to maintain flexibility (can use arbitrary code libraries), also less CPU overhead for things like select fields
-          - trend: specialization for different domains: nearest neighbors, machine learning etc
+        - e.g. hive, pig, cascading, crunch -- less code, enables experimentation
+        - trend: move towards declarative to better optimize while having ability to maintain flexibility (can use arbitrary code libraries), also less CPU overhead for things like select fields
+        - trend: specialization for different domains: nearest neighbors, machine learning etc
 
-Chapter 11  Stream Processing
+#### Chapter 11  Stream Processing
 - transmitting event streams
     - events: immutable chunks of data, encoded, grouped into a topic or stream
     - messaging systems
-          - different messaging systems differ on 2 decisions
-              - what if producers sends msg faster than consumers? can discard, buffer in a queue (what if full?), or backpressure (throttle producer)
-              - what if nodes crash or temp offline? msg lost or not, depend on application needs
-          - direct messaging from producers to consumers
-              - using UDP, or consumer exposes webhook
-              - fault tolerance is low and application needs to handle retries or lost data
-          - message brokers
-              - use a broker, and broker needs to handle availability, handles queuing too (may or may not write to disk)
-              - difference with db
-                   - not long term because msg auto deleted
-                   - working set small, and may get overloaded then bad throughput
-                   - doesn't support searching/secondary indexes, only primitive features like filtering
-                   - notify clients when data changes (unlike db)
-          - if multiple consumers
-              - load balancing (send to one consumer, round robin), and consumers process msg in between them
-              - fan-out, sending to each consumer
-              - combination of both: fan-out to both groups, and in each group send to one consumer
-          - ack and redelivery
-              - if msg processed and ack got lost, msg gets delivered twice
-              - if one consumer goes offline and redeliver to another consumer, order of msgs gets messed up
+        - different messaging systems differ on 2 decisions
+            - what if producers send msg faster than consumers? can discard, buffer in a queue (what if full?), or backpressure (throttle producer)
+            - what if nodes crash or temp offline? msg lost or not, tradeoff with durability, throughput, latency
+        - direct messaging from producers to consumers
+            - using UDP, or consumer exposes webhook
+            - fault tolerance is low and application needs to handle retries or lost data
+        - message brokers
+            - use a broker, and broker needs to handle availability, handles queuing too (may or may not write to disk)
+            - difference with db
+                - not long term because msg auto deleted
+                - working set small, and may get overloaded then bad throughput
+                - doesn't support searching/secondary indexes, only primitive features like filtering
+                - notify clients when data changes (unlike db)
+        - if multiple consumers
+            - load balancing (send to one consumer, round robin), and consumers process msg in between them
+            - fan-out, sending to each consumer
+            - combination of both: fan-out to both groups, and in each group send to one consumer
+        - ack and redelivery
+            - if msg processed and ack got lost, msg gets delivered twice
+            - if one consumer goes offline and redelivers to another consumer, order of msgs gets messed up
     - log based message brokers
-          - append-only log, divided by topics, each topic partitioned for consumers to consume -- broker keep an offset for clients
-          - supports fan-out (each consumer keeps separate offset)
-          - load balancing by assigning each partition to each consumer (#consumers limited, and later msgs gets hold up if slow)
-          - failure tolerance: if a consumer goes down, a new one picks up from its offset (but may lead to 1 duplicate)
-          - disk space
-              - if disk gets filled up, segments of msg is deleted, but disk is large -- can monitor this and set alert
-              - throughput more stable (and fast if from multiple partitions) compared to in-memory brokers writing to disk
-          - if consumer can't catch up, only that consumer is affected and others are fine. but in-memory brokers might get memory eaten up by one slow (or shut down) consumer
-          - can also replay old msgs by moving the offset
+        - append-only log on disk, divided by topics, each topic partitioned for consumers to consume -- broker keeps an offset for clients
+        - supports fan-out by having each consumer keeps its separate offset
+        - load balancing by assigning each partition to each consumer (#consumers limited, and later msgs gets hold up if slow)
+        - failure tolerance: if a consumer goes down, a new one picks up from its offset (but may lead to 1 duplicate)
+        - disk space
+            - if disk gets filled up, segments of msg is deleted, but disk is large -- can monitor this and set alert
+            - throughput more stable (and fast if from multiple partitions) compared to in-memory brokers writing to disk
+        - if consumer can't catch up, only that consumer is affected and others are fine. but in-memory brokers might get memory eaten up by one slow (or down) consumer
+            - can also replay old msgs by moving the offset
 - DB vs streams
     - keeping heterogenous data system in sync is a tricky problem
           - periodical full db dump to another system -- slow
