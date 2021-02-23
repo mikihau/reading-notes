@@ -901,43 +901,48 @@ Chapter 4 Encoding and Evolution
         - if consumer can't catch up, only that consumer is affected and others are fine. but in-memory brokers might get memory eaten up by one slow (or down) consumer
             - can also replay old msgs by moving the offset
 - DB vs streams
-    - keeping heterogenous data system in sync is a tricky problem
-          - periodical full db dump to another system -- slow
-           - dual writes to different systems -- race condition and fault-tolerance (commit) problems
-          - solution: change data capture (CPC)
-    - change data capture
-          - feed data change of one (primary) system into other systems asychrously
-          - implementation: db triggers (fragile), and some customized implementations for some dbs
-           - initial snapshot needed if not storing every change from the start (need to be consistent)
-          - or log compaction to periodically compact those logs -- ideally close to the same size as the db itself after compaction
-          - some modern dbs have api to support change streams, and put them into a msg broker
+     - keeping heterogenous data system in sync is a tricky problem
+          - periodically perform a full db dump to another system using batch processing -- slow
+          - dual writes to different systems, e.g. write to db, search index, data warehouse, and cache separately or concurrently -- problems with race condition and fault-tolerance (some writes succeed and some fail; needs atomic commit but it's expensive)
+          - solution: change data capture (CPC), making one storage system as the leader and other storages as followers
+     - change data capture
+          - when db changes are available as a stream, feed data change of one (primary) system into other systems asynchronously by using a log-based message broker
+          - the asynchronous nature for log apply avoids a slow consumer to block the entire process, but has downsides of replication lag
+          - implementation
+               - db triggers (fragile)
+               - parsing replication logs (challenges in handling schema changes)
+               - some modern dbs have APIs to support change streams and put them into a msg broker
+          - ways to set this up
+               - store and replay every change from the start
+               - make an initial consistent snapshot (with a known position in the change log)
+               - use log compaction to periodically compact those logs, allowing the message broker to be used as durable storage -- ideally close to the same size as the db itself after compaction
     - event sourcing
-          - similar to change data capture except modeled at application level instead of db level
-               - also append only, and keeps all events history
-               - e.g. translate a command (student 24875 canceled a course enrollment) into an event
-               - benefit: when new feature are introduced that side effect can be chained off some events
-          - deriving current state from event log
-               - usually needs reconstruction of current state, either by snapshotting or replay
-               - but log compaction is not possible because usually only part of the state changes, instead of cdc's full overwrite
-           - commands and events
-               - command is an action, need to verify constraints before emitting an immutable event
-               - or 2 steps, event for temporary action, then async constraint checking, then another event for confirmed action
+        - similar to change data capture, except modeled at application level instead of db level
+            - also append only, and keeps all events history
+            - e.g. translate a command (student 24875 canceled a course enrollment) into an event
+            - benefit: when new feature are introduced that side effect can be chained off some events
+        - deriving current state from event log
+            - usually needs reconstruction of current state, either by snapshotting (as a speedup) or replay
+            - log compaction is not possible because a record is usually incremental (contains on changes), unlike CDC's full overwrite
+        - commands and events
+            - a command is an action, an event is a fact; need to verify constraints before emitting an immutable event
+            - or do this 2 steps: event for temporary action (e.g. make a reservation), then async constraint checking, then another event for the confirmation
     - state, streams, immutability
-          - state is the integral of the changelogs, and a stream event is a derivative of the state
-          - advantages of immutable events
-               - easy to diagnose what happened in the system (in terms of bad code recovery)
-               - immutable events capture more than current state, useful for data analytics purposes
-          - deriving several views from the same event log
-               - easy to evolve application: derive a new view and build new feature on that view and run things side by side
-               - separation of concerns: view optimized for write gets translated to view optimized for reads, unlike predefined schema
-          - concurrency control
-               - problem: user writes to the event log and read of log-derived view with a delay
-               - solution: perform update to read view synchronously with append log
-               - also, log defines a deterministic order of events that needs to be executed, so can do actual serial execution
-          - limitations of immutability
-               - when state changes too frequently, logs become too large and performance is an issue
-               - administrative reasons: legislation for deleting personal data, sensitive data and privacy concerns
-               - truly deleting is hard because data lives in multiple places, so only makes it hard to find that data
+        - state is the integral of the changelogs, and a stream event is a derivative of the state
+        - advantages of immutable events
+            - easy to diagnose what happened in the system (in terms of bad code recovery)
+            - immutable events capture more than current state, useful for data analytics purposes
+        - deriving several views from the same event log
+            - the idea: have an explicit translation step from an event log to a database, separates the form in which data is written from the form it is read
+            - easy to evolve application: derive new views and build new features on that view and run things side by side
+            - separation of concerns: write-optimized form for write gets translated to view-optimized form for reads; this is easier than schema migration
+        - concurrency control
+            - complicating concurrency control: replication lags; may be resolved with distributed transaction/linearizable storage
+            - simplifying concurrency control: multi-object transactions isn't needed if there's only one append; if event log and application state are in the same partition, we could use actual serial execution
+        - limitations of immutability
+            - when state changes too frequently, logs become too large and performance (fragmentation, compaction) becomes an issue
+            - administrative reasons: legislation for deleting personal data, sensitive data and privacy concerns
+            - truly deleting is hard because data lives in multiple places, so only makes it hard to find that data
 - processing streams
     - 3 options: write to db/index/storage, push to user (email/notification/dashboard), process in pipeline
     - different: no sorts, fault-tolerance can't be restarting to process from the start
