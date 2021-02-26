@@ -944,14 +944,14 @@ Chapter 4 Encoding and Evolution
             - administrative reasons: legislation for deleting personal data, sensitive data and privacy concerns
             - truly deleting is hard because data lives in multiple places, so only makes it hard to find that data
 - processing streams
-    - 3 options: write to db/index/storage, push to user (email/notification/dashboard), process in pipeline
-    - different: no sorts, fault-tolerance can't be restarting to process from the start
+    - 3 options to process a stream: write to db/index/storage, push to user (email/notification/dashboard), produce more streams
+    - difference with batch jobs: no sorting, fault-tolerance (can't be restarted to process from the start)
     - stream processing applications
-          - complex event processing (CEP): store queries, then watch for data to match up the pattern, and emit complex event
-          - stream analytics: usually windows, may use probabilistic algo to approximate
-           - maintaining materialized views (keep derived systems up to date): maintain states from the start
-          - search on streams: again store queries (might be able to index queries) and do things like full text search
-           - message passing in RPC like (actor frameworks) frameworks
+        - complex event processing (CEP): store queries, then watch for data to match up the pattern (SQL or regex), and emit a complex event
+        - stream analytics: rate/rolling average/windowing, may use probabilistic algorithm to produce approximations
+        - maintaining materialized views (keep derived systems up to date): maintain states from the start
+        - search on individual queries: again store queries (might be able to index the queries) and do things like full text search
+        - message passing in RPC like (actor frameworks) frameworks
     - about time
           - event time vs processing time: could lead to bad orders and sudden spikes after failover
           - due to delays msg from previous windows might come way later after that window is published -- drop or do a correction
