@@ -953,31 +953,32 @@ Chapter 4 Encoding and Evolution
         - search on individual queries: again store queries (might be able to index the queries) and do things like full text search
         - message passing in RPC like (actor frameworks) frameworks
     - about time
-          - event time vs processing time: could lead to bad orders and sudden spikes after failover
-          - due to delays msg from previous windows might come way later after that window is published -- drop or do a correction
-          - device clock and server clock doesn't correspond
-               - device clock is intentionally wrong, or network not available for several hours or days
-               - solution: record 1)device clocks event occur time, 2)device clock's send time, 3)server's received time, estimate real occur time with 3 - 2 + 1 (omitting network delay)
-          - types of windows
-               tumbling window: fixed length, e.g. event timestamp rounded down to whole minutes
-               hopping window: fixed length but overlapping, e.g. rounded down and sum nearby 5 minutes, each time moving 1 minute
-               sliding window: keep a buffer of events and kick them out when expire
-               session window: no fixed duration but group events by session id
+        - event time vs processing time: processors usually use local clock on processing machine (processing time) for windowing, but event rates may spike after redeploy
+        - due to delays or replays, messages from previous windows might come way later after that window is published -- drop or do a correction
+        - clock on device != clock on server
+            - problem: device clock could be intentionally wrong, or data is buffered for hours/days due to network inavailability
+            - solution: record 1) time the event occurs on device clock, 2) time the event is sent event on device clock, 3) time the server receives the event, estimate real occur time with 3 - 2 + 1 (omitting network delay)
+        - types of windows for aggregations
+            - tumbling window: fixed length, e.g. event timestamp rounded down to whole minutes
+            - hopping window: fixed length but overlapping, e.g. rounded down and sum the nearby 5 minutes, each time moving 1 minute
+            - sliding window: keep a buffer of events and kick them out when expire
+            - session window: no fixed duration, but group events by session id
     - stream joins
-          - stream-stream join (window join)
-               - e.g. stream 1 is events for search results, stream 2 is events for click results
-               - implementation: maintain a state for the past hour, a window featuring both streams indexed by session id, if there's an item matching stream 1 and 2, emit "click", if expires, emit "nonclick"
-          - stream-table join (stream enrichment) (one is table change logs)
-               - e.g. join stream of user actions with a user info table, slow if making request to table every time
-               - implementation: stream processor keep local copy in memory, and subscribe to change data capture of the user table
-          - table-table join (materialized view maintenance) (both streams are table change logs)
-               - e.g. push tweets to followers, and push recent tweets to new follower
-               - equivalent to join the follower table with tweets table, like maintaining a cache
-               - implementation: stream processor maintains mapping of (user, followers), updated when the underlying table changes
-          - time-dependence of joins
-               - problem: there could be delays in processing, but at processing time looking at a changed table to join
-               - solution: give an id for each version of the joined record (usually the table), to make sure it's determinist
-               - downside: can't use log compaction because need to remember all versions
+        - stream-stream join (window join)
+            - e.g. Stream 1 contains events of search query and search results, Stream 2 contains events for clicks
+            - want to join events in 1 and 2 with the same session id, at most 1 hour apart (click events may arrive earlier than search events)
+            - implementation: maintain a window featuring both streams indexed by session id; with an incoming event, index and check the other stream for a match (emit another event saying which result is clicked); if search expires, emit an event saying which events are not clicked
+        - stream-table join (stream enrichment) (one stream is table change logs)
+            - e.g. join stream of user actions with a user info table
+            - implementation: slow if making request to table every time; instead stream processor keeps local copy in memory/disk, and subscribe to change data capture of the user table
+        - table-table join (materialized view maintenance) (both streams are table change logs)
+            - e.g. push tweets to followers, and push recent tweets to new follower
+            - equivalent to join the follower table with tweets table, like maintaining a cache
+            - implementation: stream processor maintains materialized view of (user, followers), so that it can process incoming tweets
+        - time-dependence of joins
+            - problem: what point in time do you use for the join, if states change over time? reruns might be nondeterministic
+            - solution: give an id for each version of the joined record (usually the table), to make sure it's deterministic
+            - downside: can't use log compaction because need to remember all versions
     - fault tolerance
           - microbatching and checkpointing
                - microbatching: keep a tumbling window (like 1 sec), rerun window if failure
