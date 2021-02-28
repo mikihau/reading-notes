@@ -980,20 +980,20 @@ Chapter 4 Encoding and Evolution
             - solution: give an id for each version of the joined record (usually the table), to make sure it's deterministic
             - downside: can't use log compaction because need to remember all versions
     - fault tolerance
-          - microbatching and checkpointing
-               - microbatching: keep a tumbling window (like 1 sec), rerun window if failure
-               - checkpointing: periodically write checkpoint to disk, discard last checkpoint til crash if failure
-               - problem: output to external places (the side effect) happens twice if failure happens after things were sent
-          - atomic commit
-               - use distributed atomic commit for 2 internal systems: processing and side effect to ensure "exact once processing"
-          - idempotence
-               - idempotence: thing you can do multiple times with the same effect as if just once
-               - can be done by keeping external metadata, like monotonically increasing id (offset) to tell if thing are done already
-               - during failover, use fencing to prevent a node that's thought to be dead but is alive
-          - rebuilding state after failure
-               - a requirement to recover after a failure
-               - replay if window is short
-               - keep remote state, or keep state (or snapshot) local and replicate periodically
+        - microbatching and checkpointing
+            - microbatching: keep a tumbling window (like 1 sec), rerun the window on failure
+            - checkpointing: periodically write checkpoint to disk, discard last checkpoint til crash on failure
+            - problem: output to external places (the side effect) happens twice if failure happens after output are sent out
+        - atomic commit
+            - use distributed atomic commit for the internal systems (e.g. operator state changes, outgoing messages, acknowledgement of incoming messages), to ensure exact once processing
+        - idempotence
+            - idempotence: thing you can do multiple times with the same effect as if just once
+            - can be done with keeping external metadata, like a monotonically increasing id (offset) to tell if thing are done already
+            - during failover, use fencing to prevent a node that's thought to be dead but is alive
+        - rebuilding state after failure
+            - state: window aggregations, or table/indexes used for joins
+            - solution: replay if window is short
+            - solution: keep the state remote, or keep the state (or snapshot) local and replicate periodically
 
 Chapter 12 The Future of Data Systems
          
