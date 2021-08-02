@@ -41,22 +41,22 @@ variable = 2;     // 2 (assignments return the value it's assigned)
 
 For loops
 ```
-# 1 java style
+// #1 java style
 for (let i = 0; i < 5; i++) {
   console.log(i);
 }
 
-#2 (array only) for...of 
+// #2 (array only) for...of 
 for (let element in [1,2,3]) {
   console.log(element);
 }
 
-#3 (object only) for..in
+// #3 (object only) for..in
 for (let property in {'name': 'john', 'age': 5}) {
   console.log(property);
 }
 
-#4 (array only) forEach
+// #4 (array only) forEach
 ['egg', 'milk', 'butter'].forEach(
   (value, index, array) => {
     console.log(`value: ${value}, index: ${index}, array: ${array}`);
@@ -75,7 +75,7 @@ display(1, 2, 3, 4);
 
 Spreading an array/object/string into arguments with the spread operator
 ```
-# can be used for copy/concates shallowly
+// can be used for copy/concates shallowly
 obj1 = {'a': 1};
 obj2 = {'b': 2}
 {...obj1, ...obj2} // {a: 1, b: 2}
@@ -145,13 +145,13 @@ Object property shorthand for properties of the same name
 ```
 const [p, q] = [10, 20];
 
-# this 
+// this 
 const myObj = {
   p: p, 
   q: q 
 };
 
-# is equivalent to
+// is equivalent to
 const myObj = {p, q};
 ```
 
