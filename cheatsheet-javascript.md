@@ -47,7 +47,7 @@ for (let i = 0; i < 5; i++) {
 }
 
 // #2 (array only) for...of 
-for (let element in [1,2,3]) {
+for (let element of [1,2,3]) {
   console.log(element);
 }
 
