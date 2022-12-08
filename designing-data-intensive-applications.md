@@ -27,23 +27,31 @@ by Martin Kleppmann
      - Evolvability: anticipate future changes, and be extensible to architecture-level changes.
 
 #### Chapter 2: Data Models and Query Languages
-- data abstraction layers
-     - the application layer -- api, objects
-     - db/data structures layer -- as JSON documents, or db tables
-     - db implementation layer -- how to represent them in memory, disk, or network
-     - physical layer -- electrical currents, pulses of light etc
-- relational model vs document model
-     - relational model use cases: transaction processing and batch processing
-     - object-relational mismatch, solution: ORM
-     - or document model (JSON = explicit tree structure of an object), better locality (no need JOIN queries)
-     - document model: flexible schema, better locality, maybe closer to data structures of application
-     - relational model: better joins, many-to-one and many-to-many relationships
--  document based db is good for one-to-many relationships, but bad for many-to-many relationships: have limited support for joins and that put the burden of joins onto application code
-     - possible to denormalize, but application code need to keep denormalized data consistent
-     - emulate joins usually slower than specialized code built into the db
-- relational db's query optimizer takes care of the execution
-- better to keep documents small: a read loads the entire document, and a write usually rewrites the entire document
-- DB query languages
+- Data abstraction layers
+     - Application layer -- api, objects
+     - Db/data structures layer -- as JSON documents, or db tables
+     - Db implementation layer -- how to represent them in memory, disk, or network
+     - Physical layer -- electrical currents, pulses of light etc
+- Relational model vs document model
+     - Relational model use cases: transaction processing and batch processing.
+     - ORM (object-relational mapping) frameworks hides some mismatch between data in db table and application layer.
+     - One-to-many relationships
+          - e.g. a Linkedin user has many jobs
+          - The document model (JSON = explicit tree structure of an object) has better locality for 1-to-many relationships, compared to the multi-table model (no need to do JOIN queries).
+     - Many-to-one relationships
+          - e.g. many users live in one region; should we normalize the region to an id (consistency across the board, better search, easier change), or represent it denormalized in a plain string (human readable)?
+          - Document DBs have limited support for joins and that put the burden of joins onto application code; often slower than specialized db builtins.
+     - Many-to-many relationships
+          - e.g. a user has worked for many companies, and each company has many (past) employees; a user can be endorsed by many other users, and a user can endorse many users. 
+          - Again document dbs have to deference into those other entities at (typically) application level.
+     - Schema-on-read vs schema-on-write for a schema change: document dbs can fill in the fields when reading; relational dbs have to do db migrations (maybe only a couple of milliseconds), and either rewrite all records, or fill in the data on-write.
+     - Locality: for document dbs, it's better to access most of the records at the same time and keep the doc small -- a read loads the entire document, and a write usually rewrites the entire document.
+     - Nowadays some relational dbs (e.g. postgres) support querying/editing/indexing of Json/XML, and some document dbs (e.g. some Mongodb drivers) auto resolves document references.
+     - Summary
+          - Document model: flexible schema, better locality, maybe closer to data structures of application.
+          - Relational model: better joins, many-to-one and many-to-many relationships; to add constrainst, build an index, and relational db's query optimizer takes care of execution.
+          - Bottom line on choosing a db based on the data model: "interconnected-ness" -- does your application have lots of many-to-many and one-to-many relationships?
+- Query languages
      - SQL is declarative as well as CSS
      - declarative languages hide implementation (imperative languages), so easier to optimize and write
      - mongodb has some way of supporting mapreduce; also some declaratives for aggregations
@@ -56,7 +64,7 @@ by Martin Kleppmann
      - Datalog: rule matches -- each rule generates something like a "new record in the db"
 • todos
 - think about how different real world situations things/apps and what they do, and reverse engineer about their data model
-- figure out how mongoengine makes queries (at low level) and read code about db multi reference
+- case study: postgres and mongodb -- what data types/models they support, their replication/sharding model (for fault tolerance and concurrency handling)
 
 Chapter 3 Storage and Retrieval
 - indexes: additional data structure; speed up reads but slows down writes
