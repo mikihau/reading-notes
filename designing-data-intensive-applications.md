@@ -52,19 +52,22 @@ by Martin Kleppmann
           - Relational model: better joins, many-to-one and many-to-many relationships; to add constrainst, build an index, and relational db's query optimizer takes care of execution.
           - Bottom line on choosing a db based on the data model: "interconnected-ness" -- does your application have lots of many-to-many and one-to-many relationships?
 - Query languages
-     - SQL is declarative as well as CSS
-     - declarative languages hide implementation (imperative languages), so easier to optimize and write
-     - mongodb has some way of supporting mapreduce; also some declaratives for aggregations
-- graph-like models
+     - Compared with imperative languages, declarative languages is concise to write, and hide implementation details to executors/optimizers, and is easier to parallelize.
+          - CSS is also declaritive.
+     - Running customized code
+          - Mapreduce is a fairly low-level programming model for distributed execution.
+          - Mongodb has some way of supporting mapreduce by executing javascript snippets within queries; it also some declaratives for aggregations.
+          - Some SQL databases supports running code snippets too.
+- Graph-like models
      - good for: flexible schema, complicated interrelated data
      - vertex: id, outgoing edges, incoming edges, properties (key-value)
      - edge: id, tail vertex, head vertex, relationship label, properties (key-value)
      - Cypher: delaring vertices and edges
      - SPARQL(triple store): (subject, predicate, object) -- predicate indicates edge or property
      - Datalog: rule matches -- each rule generates something like a "new record in the db"
-• todos
-- think about how different real world situations things/apps and what they do, and reverse engineer about their data model
-- case study: postgres and mongodb -- what data types/models they support, their replication/sharding model (for fault tolerance and concurrency handling)
+- todos
+     - think about how different real world situations things/apps and what they do, and reverse engineer about their data model (both relational and document)
+     - case study: Postgres([features](https://www.postgresql.org/about/featurematrix/), [doc](https://www.postgresql.org/docs/current/index.html)) and [Mongodb](https://www.mongodb.com/docs/manual/introduction/) -- what data types/models they support, their replication/sharding model (for fault tolerance and concurrency handling)
 
 Chapter 3 Storage and Retrieval
 - indexes: additional data structure; speed up reads but slows down writes
