@@ -15,15 +15,15 @@ by Martin Kleppmann
      - Human errors: usually misconfig. Solutions include designing the system carefully, using sandboxes, adopting good operational procedure/tools (e.g. quick rollback), monitoring and telemetry.
      - Practical tip: to exercise the system for reliability we could do chaos engineering -- introduce faults manually.
 - Scalability
-     - The system's ability to deal with increased load, with some definition of "load" -- differ by individual cases.
-     - Performance is usually discribed by a distribution.
-          - In SLAs performance usually use percentiles: the 50, 90, 99, 99.9th percentile of response times.
+     - Describing load: the system's ability to deal with increased load, with some definition of "load" -- differ by individual cases.
+     - Describing performance: throughput for batch systems, response time for real-time systems (usually a distribution).
+          - In SLA/SLOs performance usually use percentiles: the 50, 90, 99, 99.9th percentile of response times with uptime of a few 9s.
           - Long queues of requests often slow down performance significantly -- head-of-line blocking.
           - The tails are important because a page's performance is dominated by the slowest responding concurrent request.
      - We can scale up and scale out (stateless apps usually easier to scale out), but there's no magic sauce -- the scalable architecture depends on the volume of read and writes, access patterns, data complexity and performance requirements.
 - Maintainability
-     - Operability: provide observability to internal states/metrics, minimize surprises in behavior, design with portability.
-     - Simplicity: use proper abstraction to avoid accidental complexity.
+     - Operability: provide observability to internal states/metrics, use automation/integration tools, keep security updates, minimize surprises in behavior, design with portability.
+     - Simplicity: use proper abstraction to avoid accidental complexity (that comes from implementation only).
      - Evolvability: anticipate future changes, and be extensible to architecture-level changes.
 
 Chapter 2 Data Models and Query Languages
