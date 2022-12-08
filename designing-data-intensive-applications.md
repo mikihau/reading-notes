@@ -4,7 +4,7 @@ by Martin Kleppmann
 
 ### Part 1: Foundations of Data Systems
 
-#### Ch 1: Reliable, Scalable, and Maintainable Applications
+#### Chapter 1: Reliable, Scalable, and Maintainable Applications
 - Some trends for today's data systems:
      - New tools for data storage and processing blurs the boundaries of traditional databases, e.g. Redis, Kafka.
      - Each application is architectured as a conglomerate of components, each with a specific purpose, e.g. db + cache + search index + message queue.
@@ -26,11 +26,14 @@ by Martin Kleppmann
      - Simplicity: use proper abstraction to avoid accidental complexity (that comes from implementation only).
      - Evolvability: anticipate future changes, and be extensible to architecture-level changes.
 
-Chapter 2 Data Models and Query Languages
-• ideas
-- data abstraction layers: the application layer (api, objects), db data structures layer (as JSON documents, or tables etc), db implementation layer (memory, disk, network), physical layer (circuits)
-- relational model: transaction processing, batch processing
+#### Chapter 2: Data Models and Query Languages
+- data abstraction layers
+     - the application layer -- api, objects
+     - db/data structures layer -- as JSON documents, or db tables
+     - db implementation layer -- how to represent them in memory, disk, or network
+     - physical layer -- electrical currents, pulses of light etc
 - relational model vs document model
+     - relational model use cases: transaction processing and batch processing
      - object-relational mismatch, solution: ORM
      - or document model (JSON = explicit tree structure of an object), better locality (no need JOIN queries)
      - document model: flexible schema, better locality, maybe closer to data structures of application
@@ -54,8 +57,6 @@ Chapter 2 Data Models and Query Languages
 • todos
 - think about how different real world situations things/apps and what they do, and reverse engineer about their data model
 - figure out how mongoengine makes queries (at low level) and read code about db multi reference
-• vocab
-polyglot persistence: use different data stores in the same application
 
 Chapter 3 Storage and Retrieval
 - indexes: additional data structure; speed up reads but slows down writes
