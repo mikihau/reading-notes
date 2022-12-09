@@ -69,18 +69,27 @@ by Martin Kleppmann
      - think about how different real world situations things/apps and what they do, and reverse engineer about their data model (both relational and document)
      - case study: Postgres([features](https://www.postgresql.org/about/featurematrix/), [doc](https://www.postgresql.org/docs/current/index.html)) and [Mongodb](https://www.mongodb.com/docs/manual/introduction/) -- what data types/models they support, their replication/sharding model (for fault tolerance and concurrency handling)
 
-Chapter 3 Storage and Retrieval
-- indexes: additional data structure; speed up reads but slows down writes
-- hash indexes
-     - requirement: append-only db (log), key-value data, not many keys (index fits into memory)
-     - stores: dictionary of (key, byte offset)
-     - good for: lots of writes and not many distinct keys
-     - bad for: range queries for keys
-     - multiple segments of records (logs): offline(background thread) compaction and segment merging (deletes obsolete records and deleted records) -- write to new segment, then delete old segments
-     - segments usually several kb and size varies by segment
-     - read: search for latest segment (each segment has a hash), then 2nd to latest etc, keep number of segments small
-     - crash recovery: for hash, store shots of hash on disk; for records, have checksums
-     - synchronization: one write head, concurrent reads (because  records immutable)
+#### Chapter 3 Storage and Retrieval
+- Indexes: keep some form of metadata structure in addition to the data themselves for fast lookup; speeds up reads but slows down writes because of overhead to keep indexes up to date.
+- Hash indexes
+     - Requirement: append-only db (log), key-value data, not many keys (index needs fit into memory entirely)
+     - Index stores: in-memory dictionary of `{key: byte offset}`, update on adding a new key or updating an existing key
+     - Data stores: on-disk binary formatted data (format: len of string in bytes, then the raw string)
+     - How do we avoid running out of disk space if data is append-only?
+          - Maintain multiple segments of data records (logs): each segment keeps their own in-memory hash index. Close a segment when it reaches a certain size. An offline background thread performs compaction and segment merging (deletes obsolete records and deleted records).
+          - Compaction/merging switchover proces: write compacted data to new segment while serving requests from old segments, switch write to new segment, then delete old segments
+          - Segments usually several kb and size varies by segment.
+          - Read: search for latest segment (each segment keeps their own in-memory hash index), then 2nd to latest etc, merging and compaction has kept number of segments small. Need some sort of linkedlist structure (value being the address of current segment, next points to the next linkedlist node) to keep track of what's latest.
+     - Crash recovery: for the hash index, store snapshots of hash on disk (faster than build the index on reboot); for records, have checksums to detect/ignore partially written records.
+     - Concurrency: records are immutable and written sequentially, so one write thread, multiple concurrent read threads.
+     - Good for
+          - Workloads: frequent updates to values of the same keys, e.g. counter to video play frequency.
+          - Append and compaction are both sequential writes, faster than random writes.
+          - Crash recovery and concurrency is easy under the immutable, append-only model -- no worries of half-edited records caused by a crash or in the middle of changing a value.
+          - Compaction and merging keeps data size in check and avoids fragmentation.
+     - Bad for
+          - Workloads: too many distinct keys -- hash index must fit in memory.
+          - Inefficient range queries for keys.
 - SSTable (Sorted String Table) (also LSM-tree)
      - requirement: key-value data
      - good for: range queries, dataset much bigger than available memory, high write throughput (because disk writes are sequential)
@@ -138,7 +147,7 @@ each key only in 1 single place, so locks can be implemented easily
      - sort: sort by 1 col, then by 2nd col etc, helps with data filtering and better compression. can also have several different sort orders
      - write is slow -- writing using LSM tree -- first go in memory, then write to disk in bulk
      - data cubes, materialized views: precomputed data in multiple dimensions
-• todos
+- todos
 - look up what's a Bloom Filter and how it's used
 - look up how B-Tree works: insert, look up, delete (how it balances itself)
 
