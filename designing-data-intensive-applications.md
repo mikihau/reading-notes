@@ -71,9 +71,9 @@ by Martin Kleppmann
 
 #### Chapter 3 Storage and Retrieval
 - Indexes: keep some form of metadata structure in addition to the data themselves for fast lookup; speeds up reads but slows down writes because of overhead to keep indexes up to date.
-- Hash indexes
-     - Requirement: append-only db (log), key-value data, not many keys (index needs fit into memory entirely)
-     - Index stores: in-memory dictionary of `{key: byte offset}`, update on adding a new key or updating an existing key
+- Hash indexes (with append-only db)
+     - Requirement: key-value data, not many keys (index needs fit into memory entirely)
+     - Index stores: in-memory dictionary of `{key: byte_offset}`, update on adding a new key or updating an existing key
      - Data stores: on-disk binary formatted data (format: len of string in bytes, then the raw string)
      - How do we avoid running out of disk space if data is append-only?
           - Maintain multiple segments of data records (logs): each segment keeps their own in-memory hash index. Close a segment when it reaches a certain size. An offline background thread performs compaction and segment merging (deletes obsolete records and deleted records).
@@ -90,16 +90,26 @@ by Martin Kleppmann
      - Bad for
           - Workloads: too many distinct keys -- hash index must fit in memory.
           - Inefficient range queries for keys.
-- SSTable (Sorted String Table) (also LSM-tree)
-     - requirement: key-value data
-     - good for: range queries, dataset much bigger than available memory, high write throughput (because disk writes are sequential)
-     - on disk, store SSTables(key-value pairs, sorted by key); in memory, store sparse index for each SSTable to speed up lookup
-     - write: write to memtable (in-memory balanced data structure), when memtable's size > threshold, write to disk as a SSTable
-     - read: look up for key in memtable first, then latest SSTable (using index to know which chunk it's supposed to be in, then read chunk sequentially), second to latest SSTable...
-     - in background, merge and compaction: multi-way sorted merge, take the value of the latest SSTable
-     - crash recovery: memtable is lost, so also store unsorted sequential log while memtable is not written to disk and recover from that history
-     - LSM-tree (log-structured merge tree) optimizations: use bloom filters to decide if a key doesn't exist; strategies to merge SSTables
-     - example: Lucene uses LSM-tree to store (term, list of docs that contains the term)
+     - Implementations in the wild: Bitcask of Riak.
+- SSTable (Sorted String Table) -- a.k.a. LSM-tree
+     - Requirement: key-value data
+     - Index stores: for each segment, keep an in-memory, sorted, sparse list of `(key, value_address)` pairs, each sparse key points to start of a compressible block on disk.
+     - Data stores: sorted key-value pairs sequentially, indexed by the in-memory index. Usually several MB per segment.
+     - Segmentation
+          - Same idea of recent vs older. Keys in each segments are sorted, but one key can exist in multiple segments given how old the segment is.
+          - Write: write to an in-memory sorted balanced tree, a.k.a memtable; when memtable grows over a few MB, write sorted key value pairs to disk, forming the most recent SSTable. While writing to disk, serve new writes on a new memtable.
+          - Read: first find the key in memtable, otherwise go to most recent SSTable (looking up using binary search on sparse index, then sequentially read from disk for that chunk), second to most recent SSTable etc.
+          - Compaction and merging: multi-way sorted merge, ok if tables don't fit into memory. Dedup keys by recency. While compacting, serve read requests using the old SSTables.
+     - Crash recovery: memtable can get lost on crash; keep an unsorted log on disk for each recent write to reconstruct memtable after a crash; throw away after memtable is persisted to an SSTable.
+     - Concurrency: same as hash-based(?)
+     - Good for
+          - range queries
+          - dataset much bigger than available memory
+          - high write throughput because disk writes are sequential
+     - Optimizations
+          - Slow (several disk reads) to detect whether a key exists in the table (memtable, then a couple of SSTables). Optimization: bloom filters.
+          - When and what SSTables to merge: size-tiered (new/smaller SSTables merged onto larger/older SSTables), level-tiered.
+     - Implementations in the wild: Level-DB, RocksDB; Cassandra, HBase. Also LSM-tree implementations: Lucene stores `(term, list of docs that contains the term)`.
 - B-Tree
      - on disk data structure
      - fixed size(4KB) pages -- when rewrite, overwrite the entire page
