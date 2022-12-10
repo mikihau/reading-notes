@@ -128,15 +128,14 @@ by Martin Kleppmann
           - Trying to put sibling pages together to increase sequential reads.
      - Implementations in the wild: almost all relational dbs, and some nonrelational dbs.
 - LSM-Tree vs B-Tree
-item
-LSM-Tree
-B-Tree
-disk space
-smaller, more compact
-larger, more segmented
-write throughput
-typically higher because of lower write amplification
-higher, because have to write multiple pages sometimes and write aplification (write-ahead-logs), and have to rewrite the entire page for a couple of bytes
+
+| Item  | LSM-Tree | B-Tree |
+| --------  | ------------------- | --------------------- |
+| disk space | smaller, more compact | larger, more segmented due to unused space in pages | 
+| write throughput | maybe higher because of sequential writes | maybe lower, especially on magnetic disks, because of writing multiple pages | 
+| throughput when write requests are high | higher percentiles may be high because: 1. compaction cannot keep up, so data unmerged, so read becomes slow 2. initial write (logging and flushing memtable to disk) has to share write resources with compaction | more predictable | 
+
+
 read throughput
 1. has to look into multiple data structures and SSTables (worsen by compaction not keeping up), 2. high percentile response times might be large because of waiting for a compaction to finish
 predictable
