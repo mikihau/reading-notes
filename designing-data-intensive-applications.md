@@ -110,18 +110,23 @@ by Martin Kleppmann
           - Slow (several disk reads) to detect whether a key exists in the table (memtable, then a couple of SSTables). Optimization: bloom filters.
           - When and what SSTables to merge: size-tiered (new/smaller SSTables merged onto larger/older SSTables), level-tiered.
      - Implementations in the wild: Level-DB, RocksDB; Cassandra, HBase. Also LSM-tree implementations: Lucene stores `(term, list of docs that contains the term)`.
-- B-Tree
-     - on disk data structure
-     - fixed size(4KB) pages -- when rewrite, overwrite the entire page
-     - branching factor usually a couple of hundreds (500?), so 4 levels usually enough
-     - read: follow the pointers
-     - write: modify in place -- follow pointers and rewrite leaf pages; if leaf's parent is full, break up leaf's parent into 2 pages; delete is tricky
-     - crash recovery: write-ahead-log(WAL) before acting on B-Tree to prevent data corruption
-     - concurrency: lock on every page
-     - optimizations
-          - copy-on-write: when update a page, copy the page then update it's address in parent
-          - B+ tree: in lower level pages, store only part of the key to increase branch factor
-          - leaf pages and sibling pages to aid large range reads (avoid another trip to parent)
+- B-Tree (most popular data structure for db indexes)
+     - Requirement: on-disk data-structure; fixed size(4KB) pages -- when rewriting, overwrite the entire page. Closer to actual hardware.
+     - Index stores:
+          - Pages on disk of the form `[ref, key_boundary, ref, key_boundary, ..., ref]` where ref points to the next level of a page with finer range boundary.
+          - Branching factor usually a couple of hundreds, so 3-4 levels usually enough -- not many disk seeks.
+     - Data stores: leaf page of the B-Tree stores -- just sorted key-value pairs.
+     - Serving requests
+          - Read: follow the pointers.
+          - Write: modify in place by following pointers and rewrite leaf pages; if leaf's parent is full, break up leaf's parent into 2 pages (2 or 2+ page writes).
+     - Crash Recovery: write-ahead-log(WAL) before acting on B-Tree to restore the B-Tree after a crush to prevent data corruption.
+     - Concurrency: multiple write threads; latches (lightweight locks) at each page-level.
+     - Optimizations
+          - Copy-on-write: when update a page, create a copy of the page at a new address, together with a copy of its parent (with the new address), then switch. Can help with concurrency as well.
+          - B+ tree: in lower level pages, store only part of the key to increase branch factor.
+          - Leaf pages contain pointers to sibling pages to aid large range reads by avoiding another trip to parent.
+          - Trying to put sibling pages together to increase sequential reads.
+     - Implementations in the wild: almost all relational dbs, and some nonrelational dbs.
 - LSM-Tree vs B-Tree
 item
 LSM-Tree
