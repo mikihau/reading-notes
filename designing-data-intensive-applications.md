@@ -134,17 +134,9 @@ by Martin Kleppmann
 | disk space | smaller, more compact | larger, more segmented due to unused space in pages | 
 | write throughput | maybe higher because of sequential writes | maybe lower, especially on magnetic disks, because of writing multiple pages | 
 | throughput when write requests are high | higher percentiles may be high because: 1. compaction cannot keep up, so data unmerged, so read becomes slow 2. initial write (logging and flushing memtable to disk) has to share write resources with compaction | more predictable | 
+| read throughput | 1. has to look into multiple data structures and SSTables (worsen by compaction not keeping up), 2. high percentile response times might be large because of waiting for a compaction to finish | more predictable |
+| transactions semantics (locks) | - | each key only in 1 single place, so locks can be implemented easily |
 
-
-read throughput
-1. has to look into multiple data structures and SSTables (worsen by compaction not keeping up), 2. high percentile response times might be large because of waiting for a compaction to finish
-predictable
-when write requests are high
-1. compaction cannot keep up, so data unmerged, so read becomes slow 2. initial write (logging and flushing memtable to disk) has to share write resources with compaction
--
-transactions semantics (locks)
--
-each key only in 1 single place, so locks can be implemented easily
 - other indexing structures
      - clustered index: storing values (with keys also); covering index: store keys and some columns but not all columns
      - multi-column indexes: concatenated index (concat 2 columns, but can't look up 2nd+ col); multi-dimensional index with multi-d range queries: translate 2d to a single number using a space filling curve -- good for geospatial data and others
