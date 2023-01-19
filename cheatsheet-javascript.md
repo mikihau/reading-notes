@@ -39,15 +39,16 @@ variable = 2;     // 2 (assignments return the value it's assigned)
 1 == true;       // true, coerces type
 ```
 
-For loops
+## Looping
 ```javascript
 // #1 java style
 for (let i = 0; i < 5; i++) {
   console.log(i);
 }
 
-// #2 (array only) for...of 
-for (let element of [1,2,3]) {
+// #2 (iterable only) for...of
+// works for any iterable object -- array, string, Map, Set, arguments, iterator, generator etc
+for (let element of [1,2,3]) { // can also use destructuring for the looping variable
   console.log(element);
 }
 
@@ -64,13 +65,39 @@ for (let property in {'name': 'john', 'age': 5}) {
 );
 ```
 
+## [Destructuring](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment)
 Function with indefinite number of arguments with rest parameters
 ```javascript
 function display(first, ...rest) {
-  console.log(first);
-  console.log(rest);
+  console.log(first); // 1
+  console.log(rest); // [2,3,4]
 }
 display(1, 2, 3, 4);
+```
+
+Destructuring an array
+```javascript
+const myArray = ["a", "b", "c"];
+const [x, y] = myArray      // now x === 'a' && y === 'b'
+```
+
+Destructuring an object
+```javascript
+
+```
+
+Object property shorthand for properties of the same name
+```javascript
+const [p, q] = [10, 20];
+
+// this 
+const myObj = {
+  p: p, 
+  q: q 
+};
+
+// is equivalent to
+const myObj = {p, q};
 ```
 
 Spreading an array/object/string into arguments with the spread operator
@@ -133,26 +160,6 @@ const { firstName: first, age, city = "Paris" } = person;  // {} is the destruct
 
 // in function parameters
 const joinFirstLastName = ({ firstName, lastName }) => firstName + '-' + lastName;
-```
-
-Destructuring an array
-```javascript
-const myArray = ["a", "b", "c"];
-const [x, y] = myArray      // now x === 'a' && y === 'b'
-```
-
-Object property shorthand for properties of the same name
-```javascript
-const [p, q] = [10, 20];
-
-// this 
-const myObj = {
-  p: p, 
-  q: q 
-};
-
-// is equivalent to
-const myObj = {p, q};
 ```
 
 Returning synchronously with an asynchronous function with a Promise
