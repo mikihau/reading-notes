@@ -1,18 +1,18 @@
 Unary plus converts strings to numbers
-```
+```javascript
 + '42';   // 42
 + '010';  // 10
 + '0x10'; // 16 (strings starts with 0x is hex based)
 ```
 
 Plusing strings with numbers
-```
+```javascript
 '3' + 4 + 5;  // "345"
  3 + 4 + '5'; // "75"
 ```
 
 Unary plus vs parseInt/parseFloat
-```
+```javascript
 let str = "10.2abc";  // undefined
 parseInt(str);        // 10
 parseFloat(str);      // 10.2
@@ -20,27 +20,27 @@ parseFloat(str);      // 10.2
 ```
 
 Prefer Number.isNaN() to global isNaN() if you only want to check for NaN
-```
+```javascript
 Number.isNaN(undefined);  // false
 isNaN(undefined);         // true
 ```
 
 Returning values of declarations and assignments
-```
+```javascript
 let variable;     // undefined
 let variable = 1; // undefined
 variable = 2;     // 2 (assignments return the value it's assigned)
 ```
 
 == vs ===
-```
+```javascript
 123 == '123';    // true, == performs type coercion first
 123 === '123';   // false
 1 == true;       // true, coerces type
 ```
 
 For loops
-```
+```javascript
 // #1 java style
 for (let i = 0; i < 5; i++) {
   console.log(i);
@@ -65,7 +65,7 @@ for (let property in {'name': 'john', 'age': 5}) {
 ```
 
 Function with indefinite number of arguments with rest parameters
-```
+```javascript
 function display(first, ...rest) {
   console.log(first);
   console.log(rest);
@@ -74,7 +74,7 @@ display(1, 2, 3, 4);
 ```
 
 Spreading an array/object/string into arguments with the spread operator
-```
+```javascript
 // can be used for copy/concates shallowly
 obj1 = {'a': 1};
 obj2 = {'b': 2}
@@ -82,7 +82,7 @@ obj2 = {'b': 2}
 ```
 
 Making a custom object
-```
+```javascript
 function Person(first, last) {
   this.first = first;
   this.last = last;
@@ -97,7 +97,7 @@ var s = new Person('Simon', 'Willison');          // 'new' creates an empty obje
 ```
 
 Making a custom object using the 'class' sugar
-```
+```javascript
 class Person {
   constructor(first, last) {
     this.first = first;
@@ -116,7 +116,7 @@ Person.getScientificName();
 ```
 
 Destructuring an object
-```
+```javascript
 const person = {
   firstName: "Nick",
   lastName: "Anderson",
@@ -136,13 +136,13 @@ const joinFirstLastName = ({ firstName, lastName }) => firstName + '-' + lastNam
 ```
 
 Destructuring an array
-```
+```javascript
 const myArray = ["a", "b", "c"];
 const [x, y] = myArray      // now x === 'a' && y === 'b'
 ```
 
 Object property shorthand for properties of the same name
-```
+```javascript
 const [p, q] = [10, 20];
 
 // this 
@@ -156,7 +156,7 @@ const myObj = {p, q};
 ```
 
 Returning synchronously with an asynchronous function with a Promise
-```
+```javascript
 // 3 states of a Promise: pending, fulfilled, rejected
 const xFetcherPromise = new Promise(
   (resolve, reject) => {
@@ -172,7 +172,7 @@ xFetcherPromise
 ```
 
 Chaining asynchronous calls with async/await
-```
+```javascript
 // this function
 function getGithubUser(username) {
   return fetch(`https://api.github.com/users/${username}`).then(response => response.json()); // fetch returns a promise
@@ -191,7 +191,7 @@ getGithubUser('mbeaudru')
 ```
 
 Generating iterables with generators
-```
+```javascript
 // Generators are functions that can be exited and later re-entered with its context (variable bindings) saved across re-entrances.
 function * genB(i) {      // declares a generator function
   yield i + 1;
