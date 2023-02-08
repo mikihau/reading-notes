@@ -18,3 +18,4 @@ html {
 ```
 - Debugging tip: borders may affect the size of the box, so you could use `outline` instead -- takes the space of the margin, and does not affect the box size.
 - The `display` type affects how box properties are respected; `block` boxe uses all of the behaviors defined; `inline` boxes use _some_ behaviors.
+- `Margin` values can be positive or negative; they may collapse by taking the max (if both positive), min (if both negative), or subtract (one of them negative), given additional margin collapsing rules.
