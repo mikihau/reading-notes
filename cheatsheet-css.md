@@ -22,3 +22,12 @@ html {
   - `inline` boxes use _some_ behaviors -- `width` and `height` are ignored; vertical padding/border/margin don't push away other contents; horizontal ones are respected;
   - `inline-block` works like `block`, but does not break into a new line.
 - `Margin` values can be positive or negative; they may collapse by taking the max (if both positive), min (if both negative), or subtract (one of them negative), given additional margin collapsing rules.
+
+# Selectors
+- Simple
+  - `*` -- every element
+  - type selector, e.g. `section` -- html tag
+  - class selector, e.g. `.my-class`-- will also match an element with multiple classes like `<div class="my-class another-class a-third-class"></div>`
+  - id selector, e.g. `#my-id` -- matches `<div id="my-id"></div>`, but id is unique so it's rarely used
+  - attribute selector, e.g. `[data-type='primary']` (matches value) or `[data-type]` (matches presence) -- can also specify the attribute value's case sensitivity, contains/starts with/ends with
+  - you can group multiple selectors with comma in between them
