@@ -25,9 +25,14 @@ html {
 
 # Selectors
 - Simple
-  - `*` -- every element
-  - type selector, e.g. `section` -- html tag
-  - class selector, e.g. `.my-class`-- will also match an element with multiple classes like `<div class="my-class another-class a-third-class"></div>`
-  - id selector, e.g. `#my-id` -- matches `<div id="my-id"></div>`, but id is unique so it's rarely used
-  - attribute selector, e.g. `[data-type='primary']` (matches value) or `[data-type]` (matches presence) -- can also specify the attribute value's case sensitivity, contains/starts with/ends with
-  - you can group multiple selectors with comma in between them
+
+| Name                        | Looks Like                                                                   | Explanation                                                                                                   |
+|-----------------------------|------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| universal/wildcard selector | `*`                                                                          | matches every element                                                                                         |
+| type selector               | `section`                                                                    | matches the html tag                                                                                          |
+| class selector              | `.my-class`                                                                  | also matches an element with multiple classes like `<div class="my-class another-class a-third-class"></div>` |
+| id selector                 | `#my-id`                                                                     | id is unique to each element so it's rarely used                                                              |
+| attribute selector          | `[data-type='primary']` (matches value), or `[data-type]` (matches presence) | can also specify the attribute value's case sensitivity, contains/starts with/ends with                       |
+| group selector              | `.my-class, [lang]`                                                          | can group multiple selectors with comma in between them                                                       |
+| pseudo-classes              | `a:hover`                                                                    | pseudo-classes are element in particular states; e.g. are interacted with                                     |
+| pseudo-elements             | `.my-element::before`                                                        | pseudo-elements act as if they are inserting a new element with CSS                                           |
