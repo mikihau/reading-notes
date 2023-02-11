@@ -33,7 +33,7 @@ html {
 | class selector              | `.my-class`                                                                  | also matches an element with multiple classes like `<div class="my-class another-class a-third-class"></div>` |
 | id selector                 | `#my-id`                                                                     | id is unique to each element so it's rarely used                                                              |
 | attribute selector          | `[data-type='primary']` (matches value), or `[data-type]` (matches presence) | can also specify the attribute value's case sensitivity, contains/starts with/ends with                       |
-| group selector              | `.my-class, [lang]`                                                          | can group multiple selectors with comma in between them                                                       |
+| group selector              | `.my-class, [lang]`                                                          | can group multiple selectors with comma (and optional space and/or newline) in between them                                                       |
 | pseudo-classes              | `a:hover`                                                                    | pseudo-classes are element in particular states; e.g. are interacted with                                     |
 | pseudo-elements             | `.my-element::before`                                                        | pseudo-elements act as if they are inserting a new element with CSS                                           |
 
