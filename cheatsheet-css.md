@@ -36,3 +36,13 @@ html {
 | group selector              | `.my-class, [lang]`                                                          | can group multiple selectors with comma in between them                                                       |
 | pseudo-classes              | `a:hover`                                                                    | pseudo-classes are element in particular states; e.g. are interacted with                                     |
 | pseudo-elements             | `.my-element::before`                                                        | pseudo-elements act as if they are inserting a new element with CSS                                           |
+
+- Combinators
+
+| Name               | Looks Like                       | Explanation                                                                                             |
+|--------------------|----------------------------------|---------------------------------------------------------------------------------------------------------|
+| descendant         | a space, e.g. `p strong`         | all strong elements that are children of p elements, recursive                                          |
+| next sibling       | `* + *`                          | any element that is a next sibling of any element (meaning all except for the first elements in a list) |
+| subsequent sibling | `~ .toggle__decor`               | any element that follows another element with the same parent                                           |
+| direct descendant  | `> * + *`                        | applies to only the direct descendant that is the 2nd element and beyond, non recursive                 |
+| compound           | without space, e.g. `a.my-class` | increases specificity -- all `<a>` elements that's also `my-class`                                      |
