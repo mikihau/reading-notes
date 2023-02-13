@@ -24,25 +24,29 @@ html {
 - `Margin` values can be positive or negative; they may collapse by taking the max (if both positive), min (if both negative), or subtract (one of them negative), given additional margin collapsing rules.
 
 # Selectors
-- Simple
+## Simple
 
 | Name                        | Looks Like                                                                   | Explanation                                                                                                   |
 |-----------------------------|------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
 | universal/wildcard selector | `*`                                                                          | matches every element                                                                                         |
 | type selector               | `section`                                                                    | matches the html tag                                                                                          |
-| class selector              | `.my-class`                                                                  | also matches an element with multiple classes like `<div class="my-class another-class a-third-class"></div>` |
+| class selector              | `.my-class`                                                                  | also matches an element with multiple classes like `<div class="my-class another-class a-third-class"></div>` -- use `[class="my-class"` for exact match instead |
 | id selector                 | `#my-id`                                                                     | id is unique to each element so it's rarely used                                                              |
 | attribute selector          | `[data-type='primary']` (matches value), or `[data-type]` (matches presence) | can also specify the attribute value's case sensitivity, contains/starts with/ends with                       |
 | group selector              | `.my-class, [lang]`                                                          | can group multiple selectors with comma (and optional space and/or newline) in between them                                                       |
-| pseudo-classes              | `a:hover`                                                                    | pseudo-classes are element in particular states; e.g. are interacted with                                     |
+| pseudo-classes              | `a:hover` or `p:first-child`                                                 | pseudo-classes are element in particular states; e.g. are interacted with                                     |
 | pseudo-elements             | `.my-element::before`, `p::first-line`                                       | pseudo-elements act as if they are inserting a new element with CSS, or the first line of text in a `<p>`                                      |
 
-- Combinators
+- Can use `*` to improve readability, e.g. `article :first-child` is equivalent to `article *:first-child`, but the causes less confusion with `article:first-child`.
+
+
+## Combinators
 
 | Name               | Looks Like                       | Explanation                                                                                             |
 |--------------------|----------------------------------|---------------------------------------------------------------------------------------------------------|
 | descendant         | a space, e.g. `p strong`         | all strong elements that are children of p elements, recursive                                          |
-| next sibling       | `* + *`                          | any element that is a next sibling of any element (meaning all except for the first elements in a list) |
-| subsequent sibling | `~ .toggle__decor`               | any element that follows another element with the same parent                                           |
+| next/adjacent sibling  | `* + *`                      | any element that is a next sibling of any element (meaning all except for the first elements in a list) |
+| subsequent/general sibling | `~ .toggle__decor`       | any element that follows another element with the same parent, not necessarily adjacent                 |
 | direct descendant  | `> * + *`                        | applies to only the direct descendant that is the 2nd element and beyond, non recursive                 |
-| compound           | without space, e.g. `a.my-class` | increases specificity -- all `<a>` elements that's also `my-class`                                      |
+| compound           | without space, e.g. `a.my-class` | increases specificity -- all `<a>` elements that's also `my-class` (similar to AND)                                      |
+
