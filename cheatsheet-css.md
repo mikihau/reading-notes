@@ -50,3 +50,11 @@ html {
 | direct descendant  | `> * + *`                        | applies to only the direct descendant that is the 2nd element and beyond, non recursive                 |
 | compound           | without space, e.g. `a.my-class` | increases specificity -- all `<a>` elements that's also `my-class` (similar to AND)                                      |
 
+# The Cascade, Inheritance, and Specificity
+- A trick for providing fallbacks for browsers is to declare the same property twice, e.g. 
+```css
+.my-element {
+  font-size: 1.5rem;
+  font-size: clamp(1.5rem, 1rem + 3vw, 2rem);
+}
+```
