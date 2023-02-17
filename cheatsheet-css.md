@@ -61,3 +61,9 @@ html {
 ```
 - Specificity: CSS selectors has a set of rules to score its specificity; the selector with the highest score wins, unless there are two selectors with equal scores -- where the last one wins.
 - Inheritance: some CSS property values set on parent elements are inherited by their child elements (e.g. `color`, `font-family`), and some aren't.
+- Explicitly controlling inheritance with these keywords (for any css element, not just the inheritable ones by default)
+  - inherit: turns on inheritance.
+  - initial: sets to the initial value of that property
+  - revert: resets the property value to the browser's default styling (rather than the defaults applied to that property)
+  - revert-layer: resets the property value to the value established in a previous cascade layer
+  - unset: resets the property to its natural value -- if the property is naturally inherited it acts like inherit, otherwise it acts like initial
