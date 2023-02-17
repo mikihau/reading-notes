@@ -51,6 +51,7 @@ html {
 | compound           | without space, e.g. `a.my-class` | increases specificity -- all `<a>` elements that's also `my-class` (similar to AND)                                      |
 
 # The Cascade, Inheritance, and Specificity
+- The cascade: it specifies which css rules win -- usually css file that appears in the last wins, unless there's inline styles.
 - A trick for providing fallbacks for browsers is to declare the same property twice, e.g. 
 ```css
 .my-element {
@@ -58,3 +59,5 @@ html {
   font-size: clamp(1.5rem, 1rem + 3vw, 2rem);
 }
 ```
+- Specificity: CSS selectors has a set of rules to score its specificity; the selector with the highest score wins, unless there are two selectors with equal scores -- where the last one wins.
+- Inheritance: some CSS property values set on parent elements are inherited by their child elements (e.g. `color`, `font-family`), and some aren't.
