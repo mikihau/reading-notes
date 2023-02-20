@@ -70,12 +70,20 @@ html {
   - unset: resets the property to its natural value -- if the property is naturally inherited it acts like inherit, otherwise it acts like initial
 
 # Layout
-## Flex
+- CSS allows controlling of elements's position based on:
+  - their default position in normal layout flow, 
+  - the other elements around them, 
+  - their parent container, 
+  - and the main viewport/window.
+
+## Flexbox
+- `display: flex`
 - 1-dimensional (horizontal or vertical) layout control, by default children won't wrap, good for responsive design.
 - Some tunable properties: `align-items`, `justify-content` and `flex-wrap`.
 - Children are flex items -- tunables for their behaviors: `flex-grow`, `flex-shrink` and `flex-basis`.
 
 ## Grid
+- `display: grid`
 - 2-dimentional layout control, use `repeat` and `minmax`(value between min and max) etc to declare. E.g. `grid-template-columns: repeat(12, 1fr) 2fr`.
 ![Grid Terminology](images/css-grid-terminology.jpg)
 - Adjust gap using `gap`.
@@ -83,7 +91,9 @@ html {
   - Use `grid-row: x/y` and `grid-column: x/y` to assign an element that runs from line x to y.
   - Alternatively use `grid-template-areas` (takes multiple strings) to associate grid areas with names, then use `grid-area` to assign each element to the name.
 
-## Flow
-- The `float` property (`left`, `right` or `inherit`) places an element, so that the siblings wraps around it.
+## The Normal Flow
+- You can set the `display` property of an element to `block`, `inline`, `inline-block` -- some html tags already has defaults.
+- The `float` property (`left`, `right` or `inherit`) places an element, so that the block-level siblings wraps around it.
 - To get multicolumn layout (for long lists etc), use `column-count` or `column-width`(better for responsiveness), and `column-gap`.
-- The `position` property defines how an element is positioned relative to other elements -- with values `relative`, `absolute`, `fixed`, `sticky`, and `static`. (default).
+- The `position` property gives control of the placement of boxes inside other boxes -- with values `relative`, `absolute`, `fixed`, `sticky`, and `static`. (default).
+- The `table` layout can be used on some non-table elements as well by setting `display: table`.
