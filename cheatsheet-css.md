@@ -77,23 +77,23 @@ html {
   - and the main viewport/window.
 
 ## Flexbox
-- `display: flex`
-- 1-dimensional (horizontal or vertical) layout control, by default children won't wrap, good for responsive design.
-- Some tunable properties: `align-items`, `justify-content` and `flex-wrap`.
-- Children are flex items -- tunables for their behaviors: `flex-grow`, `flex-shrink` and `flex-basis`.
+- `display: flex` to parent, and children becomes flex items -- works well for responsive design.
+- 1-dimensional (horizontal or vertical with `flex-direction`) layout control, by default children won't wrap.
+- Some tunable properties for parent: `align-items`(for height), `justify-content` and `flex-wrap`(for wrapping).
+- Tunable properties for flex items: `flex-grow`, `flex-shrink` and `flex-basis` -- shorthand to `flex` with 3 values.
 
 ## Grid
-- `display: grid`
-- 2-dimentional layout control, use `repeat` and `minmax`(value between min and max) etc to declare. E.g. `grid-template-columns: repeat(12, 1fr) 2fr`.
+- `display: grid` to parent.
+- 2-dimentional layout control, use `repeat` and `minmax`(value between min and max) etc to declare on that parent. E.g. `grid-template-columns: repeat(12, 1fr) 2fr`.
 ![Grid Terminology](images/css-grid-terminology.jpg)
-- Adjust gap using `gap`.
+- On parent, adjust gap with `gap`.
 - Assignment:
   - Use `grid-row: x/y` and `grid-column: x/y` to assign an element that runs from line x to y.
   - Alternatively use `grid-template-areas` (takes multiple strings) to associate grid areas with names, then use `grid-area` to assign each element to the name.
 
 ## The Normal Flow
 - You can set the `display` property of an element to `block`, `inline`, `inline-block` -- some html tags already has defaults.
-- The `float` property (`left`, `right` or `inherit`) places an element, so that the block-level siblings wraps around it.
+- The `float` property (`left`, `right`, `none`(default), or `inherit`) places an element, so that the block-level siblings wraps around it.
 - To get multicolumn layout (for long lists etc), use `column-count` or `column-width`(better for responsiveness), and `column-gap`.
 - The `position` property gives control of the placement of boxes inside other boxes -- with values `relative`, `absolute`, `fixed`, `sticky`, and `static`. (default).
 - The `table` layout can be used on some non-table elements as well by setting `display: table`.
