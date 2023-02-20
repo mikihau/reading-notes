@@ -76,7 +76,7 @@ html {
 - Children are flex items -- tunables for their behaviors: `flex-grow`, `flex-shrink` and `flex-basis`.
 
 ## Grid
-- 2-dimentional layout control, use `repeat` and `minmax`(value between min and max) etc to declare. E.g. `grid-template-columns: repeat(12, 1fr)`.
+- 2-dimentional layout control, use `repeat` and `minmax`(value between min and max) etc to declare. E.g. `grid-template-columns: repeat(12, 1fr) 2fr`.
 ![Grid Terminology](images/css-grid-terminology.jpg)
 - Adjust gap using `gap`.
 - Assignment:
@@ -84,3 +84,6 @@ html {
   - Alternatively use `grid-template-areas` (takes multiple strings) to associate grid areas with names, then use `grid-area` to assign each element to the name.
 
 ## Flow
+- The `float` property (`left`, `right` or `inherit`) places an element, so that the siblings wraps around it.
+- To get multicolumn layout (for long lists etc), use `column-count` or `column-width`(better for responsiveness), and `column-gap`.
+- The `position` property defines how an element is positioned relative to other elements -- with values `relative`, `absolute`, `fixed`, `sticky`, and `static`. (default).
