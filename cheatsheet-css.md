@@ -95,5 +95,10 @@ html {
 - You can set the `display` property of an element to `block`, `inline`, `inline-block` -- some html tags already has defaults.
 - The `float` property (`left`, `right`, `none`(default), or `inherit`) places an element, so that the block-level siblings wraps around it.
 - To get multicolumn layout (for long lists etc), use `column-count` or `column-width`(better for responsiveness), and `column-gap`.
-- The `position` property gives control of the placement of boxes inside other boxes -- with values `relative`, `absolute`, `fixed`, `sticky`, and `static`. (default).
+- The `position` property allows you to move an element from where it would otherwise be placed in normal flow over to another location.
+  - `static`: the default, just put the element in the normal flow.
+  - `relative`: move the element relative to its position in the normal flow, might make it overlap with other elements.
+  - `absolute`: takes an element completely out of the normal flow, fix it to a position relative to the edges of its closest positioned ancestor ( `<html>` if no other ancestors are positioned).
+  - `fixed`: fixes an element relative to the browser viewport, not another element (like `absolute`).
+  - `sticky`: acts like `position: relative` hits a defined offset from the viewport -- then acts like `position:fixed`.
 - The `table` layout can be used on some non-table elements as well by setting `display: table`.
