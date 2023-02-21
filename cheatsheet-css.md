@@ -19,7 +19,7 @@ html {
 - Debugging tip: borders may affect the size of the box, so you could use `outline` instead -- takes the space of the margin, and does not affect the box size.
 - The `display` type affects how box properties are respected:
   - `block` boxe uses all of the behaviors defined;
-  - `inline` boxes use _some_ behaviors -- `width` and `height` are ignored; vertical padding/border/margin don't push away other contents; horizontal ones are respected;
+  - `inline` boxes use _some_ behaviors -- `width` and `height` are ignored; vertical padding/border/margin don't push away other contents; horizontal ones are respected; overflowing inline elements will try to wrap around onto a new line if possible (e.g. text), or go on a new line (e.g. image);
   - `inline-block` works like `block`, but does not break into a new line;
   - it can also dictate how it's children behaves, by setting `display` to `grid` or `flex` (see layout).
 - `Margin` values can be positive or negative; they may collapse by taking the max (if both positive), min (if both negative), or subtract (one of them negative), given additional margin collapsing rules.
@@ -95,10 +95,10 @@ html {
 - You can set the `display` property of an element to `block`, `inline`, `inline-block` -- some html tags already has defaults.
 - The `float` property (`left`, `right`, `none`(default), or `inherit`) places an element, so that the block-level siblings wraps around it.
 - To get multicolumn layout (for long lists etc), use `column-count` or `column-width`(better for responsiveness), and `column-gap`.
-- The `position` property allows you to move an element from where it would otherwise be placed in normal flow over to another location.
+- The `position` property allows you to move an element from where it would otherwise be placed in normal flow over to another location. Use together with properties like `top` and `left` to offset the position.
   - `static`: the default, just put the element in the normal flow.
-  - `relative`: move the element relative to its position in the normal flow, might make it overlap with other elements.
-  - `absolute`: takes an element completely out of the normal flow, fix it to a position relative to the edges of its closest positioned ancestor ( `<html>` if no other ancestors are positioned).
-  - `fixed`: fixes an element relative to the browser viewport, not another element (like `absolute`).
-  - `sticky`: acts like `position: relative` hits a defined offset from the viewport -- then acts like `position:fixed`.
-- The `table` layout can be used on some non-table elements as well by setting `display: table`.
+  - `relative`: move the element relative to its position in the normal flow (offset an item from its default position in normal flow), e.g. moving an icon down a bit so it lines up with a text label -- might make it overlap with other elements.
+  - `absolute`: takes an element completely out of the normal flow, fixes it to a position relative to the edges of its closest positioned ancestor ( `<html>` if no other ancestors are positioned).
+  - `fixed`: also removes the element from the normal flow, but fixes it relative to the browser viewport, not another element (like `absolute`). E.g. a menu that remains fixed as the page scrolls beneath it.
+  - `sticky`: acts like `position: relative` until it hits the defined offset from the viewport, then acts like `position:fixed`.
+- The `table` layout can be used on some non-table elements as well by setting `display: table` -- but don't use `table` for layout with modern browsers.
