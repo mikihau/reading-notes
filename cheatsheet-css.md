@@ -83,8 +83,20 @@ html {
 - Tunable properties for flex items: `flex-grow`, `flex-shrink` and `flex-basis` -- shorthand to `flex` with 3 values.
 
 ## Grid
-- `display: grid` to parent.
-- 2-dimentional layout control, use `repeat` and `minmax`(value between min and max) etc to declare on that parent. E.g. `grid-template-columns: repeat(12, 1fr) 2fr`.
+- `display: grid` to parent. The parent is a grid container, and direct children are grid items.
+- 2-dimentional layout control, e.g.
+```css
+.container {
+    display: grid;
+    grid-template-columns: 5em 100px 30%;
+    grid-template-rows: 200px auto; // auto is the default, means as big as the size of the content
+    gap: 10px;
+}
+```
+- Defining rows and columns with `grid-template-columns` and `grid-template-rows`:
+  - Can use css units like the example above.
+  - Can also use `repeat(times, unit)` and `minmax(unit, unit)`(value between min and max) to declare on that parent. E.g. `grid-template-columns: repeat(12, 1fr) 2fr`.
+  - Or can use intrinsic sizing keywords like `min-content`(longest word in text), `max-content`(length of the entire text without wrap), `fit-content(param)`(less or equal to param, and wrap text if longer than param).
 ![Grid Terminology](images/css-grid-terminology.jpg)
 - On parent, adjust gap with `gap`.
 - Assignment:
