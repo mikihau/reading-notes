@@ -98,15 +98,29 @@ html {
 - Defining rows and columns with `grid-template-columns` and `grid-template-rows`:
   - Can use css units like the example above.
   - Can also use `repeat(times, unit)` and `minmax(unit, unit)`(value between min and max) to declare on that parent. E.g. `grid-template-columns: repeat(12, 1fr) 2fr`.
-    - Example of a grid with filled with as many columns as possible in the viewport, each column with a minimum of 200px: `grid-template-columns: repeat(auto-fill, minmax(200px,1fr));`.
+    - [responsiveness] Example of a grid with filled with as many columns as possible in the viewport, each column with a minimum of 200px: `grid-template-columns: repeat(auto-fill, minmax(200px,1fr));`.
     - If changing the above example to use `auto-fit`, existing columns (those with element placed) stretches to fit the width of the container instead.
   - Or can use intrinsic sizing keywords like `min-content`(longest word in text), `max-content`(length of the entire text without wrap), `fit-content(size)`(less or equal to param, and wrap text if longer than `size`).
+  - Omplicitly created tracks are auto-sized by default, but can be sized with `grid-auto-rows` and ` grid-auto-columns`.
 
 - On parent, adjust gap with `gap`.
 - Assignment/placement
-  - By default, the grid items are placed along the rows -- can toggle with `grid-auto-flow: column`.
+  - By default, the grid items are auto placed along the rows -- can toggle with `grid-auto-flow: column`.
   - Use `grid-row: x/y` and `grid-column: x/y` to assign an element that runs from line x to y, or `grid-column: auto / span 2` for spanning two tracks -- shorthand for `grid-column-start` and `grid-column-end`.
-  - Alternatively use `grid-template-areas` (takes multiple strings) to associate grid areas with names, then use `grid-area` to assign each element to the name.
+  - Alternatively use `grid-template-areas` (takes multiple strings) to associate grid areas with names, then use `grid-area` to assign each element to the name. E.g.
+```css
+    grid-template-areas:
+        "....... header header header"   // use 1 or more dots to indicate an empty cell
+        "sidebar content content content"
+        "sidebar footer footer footer";
+```
+  - Elements can overlap with manual placement -- use `z-index` to toggle stacking order.
+  - [responsiveness] For responsiveness, use media queries to redistribute the grid and areas like
+```css
+@media (min-width: size) {
+  [selector with grid-template-columns and/or grid-template-areas declarations]
+}
+```
 
 ## The Normal Flow
 - You can set the `display` property of an element to `block`, `inline`, `inline-block` -- some html tags already has defaults.
