@@ -98,12 +98,14 @@ html {
 - Defining rows and columns with `grid-template-columns` and `grid-template-rows`:
   - Can use css units like the example above.
   - Can also use `repeat(times, unit)` and `minmax(unit, unit)`(value between min and max) to declare on that parent. E.g. `grid-template-columns: repeat(12, 1fr) 2fr`.
-    - Example of a grid with filled with as many columns as possible in the viewport, each column with a minimum of 200px: `grid-template-columns: repeat(auto-fill, minmax(200px,1fr));`
+    - Example of a grid with filled with as many columns as possible in the viewport, each column with a minimum of 200px: `grid-template-columns: repeat(auto-fill, minmax(200px,1fr));`.
+    - If changing the above example to use `auto-fit`, existing columns (those with element placed) stretches to fit the width of the container instead.
   - Or can use intrinsic sizing keywords like `min-content`(longest word in text), `max-content`(length of the entire text without wrap), `fit-content(size)`(less or equal to param, and wrap text if longer than `size`).
 
 - On parent, adjust gap with `gap`.
-- Assignment:
-  - Use `grid-row: x/y` and `grid-column: x/y` to assign an element that runs from line x to y.
+- Assignment/placement
+  - By default, the grid items are placed along the rows -- can toggle with `grid-auto-flow: column`.
+  - Use `grid-row: x/y` and `grid-column: x/y` to assign an element that runs from line x to y, or `grid-column: auto / span 2` for spanning two tracks -- shorthand for `grid-column-start` and `grid-column-end`.
   - Alternatively use `grid-template-areas` (takes multiple strings) to associate grid areas with names, then use `grid-area` to assign each element to the name.
 
 ## The Normal Flow
