@@ -84,6 +84,8 @@ html {
 
 ## Grid
 - `display: grid` to parent. The parent is a grid container, and direct children are grid items.
+- Terminology
+![Grid Terminology](images/css-grid-terminology.jpg)
 - 2-dimentional layout control, e.g.
 ```css
 .container {
@@ -96,8 +98,9 @@ html {
 - Defining rows and columns with `grid-template-columns` and `grid-template-rows`:
   - Can use css units like the example above.
   - Can also use `repeat(times, unit)` and `minmax(unit, unit)`(value between min and max) to declare on that parent. E.g. `grid-template-columns: repeat(12, 1fr) 2fr`.
-  - Or can use intrinsic sizing keywords like `min-content`(longest word in text), `max-content`(length of the entire text without wrap), `fit-content(param)`(less or equal to param, and wrap text if longer than param).
-![Grid Terminology](images/css-grid-terminology.jpg)
+    - Example of a grid with filled with as many columns as possible in the viewport, each column with a minimum of 200px: `grid-template-columns: repeat(auto-fill, minmax(200px,1fr));`
+  - Or can use intrinsic sizing keywords like `min-content`(longest word in text), `max-content`(length of the entire text without wrap), `fit-content(size)`(less or equal to param, and wrap text if longer than `size`).
+
 - On parent, adjust gap with `gap`.
 - Assignment:
   - Use `grid-row: x/y` and `grid-column: x/y` to assign an element that runs from line x to y.
