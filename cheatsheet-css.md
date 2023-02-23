@@ -143,4 +143,7 @@ html {
 # Miscellaneous
 ## Color
 - Hex (0-9 and a-f) -- each two digits run from 0-255 for red, green and blue: `#000000` (pure black), and `#00000080` (black with 50% alpha), `#000000BF` (black with 75% alpha).
-- Rgb (red, green, blue): `rgb(183 21 64)` (0-255) or `rgb(0%, 0%, 0%)` (0%-100%); `rgb(0 0 0 / 50%)` or `rgba(0, 0, 0, 50%)` for alpha. Space delimiter is newer than comma delimiter.
+- RGB (red, green, blue): `rgb(183 21 64)` (0-255) or `rgb(0%, 0%, 0%)` (0%-100%); `rgb(0 0 0 / 50%)` or `rgba(0, 0, 0, 50%)` for alpha. Space delimiter is newer than comma delimiter.
+- HSL (Hue, Saturation, Lightness): `hsl(40 91% 60%)` -- hue from 0-360 (around the color wheel), saturation from 0%-100% (0% meaning grayscale), lightness from 0%-100% (adding black or white).
+- Named colors: [all names](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color), `transparent`, and `currentColor` (depending on the computed `color` on the same element, or the cascade).
+- For text, `color`, `text-shadow` and `text-decoration-color` are common properties for coloring. `border-color`, `outline-color`, and `box-shadow` for boxes.
