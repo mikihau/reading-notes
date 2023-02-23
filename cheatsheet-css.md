@@ -139,3 +139,8 @@ html {
   - `fixed`: also removes the element from the normal flow, but fixes it relative to the browser viewport, not another element (like `absolute`). E.g. a menu that remains fixed as the page scrolls beneath it.
   - `sticky`: acts like `position: relative` until it hits the defined offset from the viewport, then acts like `position:fixed`.
 - The `table` layout can be used on some non-table elements as well by setting `display: table` -- but don't use `table` for layout with modern browsers.
+
+# Miscellaneous
+## Color
+- Hex (0-9 and a-f) -- each two digits run from 0-255 for red, green and blue: `#000000` (pure black), and `#00000080` (black with 50% alpha), `#000000BF` (black with 75% alpha).
+- Rgb (red, green, blue): `rgb(183 21 64)` (0-255) or `rgb(0%, 0%, 0%)` (0%-100%); `rgb(0 0 0 / 50%)` or `rgba(0, 0, 0, 50%)` for alpha. Space delimiter is newer than comma delimiter.
