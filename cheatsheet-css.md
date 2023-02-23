@@ -95,13 +95,13 @@ html {
     gap: 10px;
 }
 ```
-- Defining rows and columns with `grid-template-columns` and `grid-template-rows`:
+- Defining rows and columns explicitly with `grid-template-columns` and `grid-template-rows`:
   - Can use css units like the example above.
   - Can also use `repeat(times, unit)` and `minmax(unit, unit)`(value between min and max) to declare on that parent. E.g. `grid-template-columns: repeat(12, 1fr) 2fr`.
     - [responsiveness] Example of a grid with filled with as many columns as possible in the viewport, each column with a minimum of 200px: `grid-template-columns: repeat(auto-fill, minmax(200px,1fr));`.
     - If changing the above example to use `auto-fit`, existing columns (those with element placed) stretches to fit the width of the container instead.
   - Or can use intrinsic sizing keywords like `min-content`(longest word in text), `max-content`(length of the entire text without wrap), `fit-content(size)`(less or equal to param, and wrap text if longer than `size`).
-  - Omplicitly created tracks are auto-sized by default, but can be sized with `grid-auto-rows` and ` grid-auto-columns`.
+  - Implicitly created tracks are auto-sized by default, but can be sized with `grid-auto-rows` and ` grid-auto-columns`.
 
 - On parent, adjust gap with `gap`.
 - Assignment/placement
@@ -115,12 +115,18 @@ html {
         "sidebar footer footer footer";
 ```
   - Elements can overlap with manual placement -- use `z-index` to toggle stacking order.
-  - [responsiveness] For responsiveness, use media queries to redistribute the grid and areas like
+  - [responsiveness] For responsiveness, use media queries to redistribute the grid and areas. E.g.
 ```css
 @media (min-width: size) {
   [selector with grid-template-columns and/or grid-template-areas declarations]
 }
 ```
+- Alignment
+  - `justify-*` for inline direction (horizontal for English), and `align-*` for block direction (vertical for English).
+  - `justify-content` and `align-content`: applied to the grid container, distribute additional space (if the grid is larger than the space needed to lay out the fixed width tracks) in the grid container around/between tracks.
+  - `justify-items` and `align-items`: applied to the grid container to move all items around inside the grid area they're in (if there are space).
+  - `justify-self` and `align-self`: same with `justify/align-items`, but for individual grid items.
+
 
 ## The Normal Flow
 - You can set the `display` property of an element to `block`, `inline`, `inline-block` -- some html tags already has defaults.
