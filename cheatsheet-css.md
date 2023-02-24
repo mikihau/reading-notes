@@ -79,9 +79,20 @@ html {
 
 ## Flexbox
 - `display: flex` to parent, and children becomes flex items -- works well for responsive design.
-- 1-dimensional (horizontal or vertical with `flex-direction`) layout control, by default children won't wrap.
-- Some tunable properties for parent: `align-items`(for height), `justify-content` and `flex-wrap`(for wrapping).
-- Tunable properties for flex items: `flex-grow`, `flex-shrink` and `flex-basis` -- shorthand to `flex` with 3 values.
+- 1-dimensional (horizontal or vertical with `flex-direction` for `row`(default), `column`, `row-reverse`, and `column-reverse`) layout control. [responsiveness] Careful about reverse since it causes logical ordering to be different from visual ordering.
+  - By default children won't wrap -- items will overflow (will shrink to `min-content` before overflowing).
+  - Flex items move as a group on the main axis.
+  - You can move the items individually or as a group on the cross axis, or treat lines as a group when wrapped.
+- Some tunable properties for parent: 
+  - `flex-wrap` for wrapping items: `nowrap`(default), `wrap`. Wrapping creates multiple individual flex lines, and it's not possible to have contents line up on the cross axis -- use grid instead.
+  - Use `flex-flow` as a shorthand for `flex-direction` + `flex-wrap`, e.g. `flex-flow: column wrap;`.
+  - `align-items`(for height)
+  - `justify-content`
+- Tunable properties for flex items to control space inside:
+  - `flex-grow`: 0 for no growing, 1 or more for yes to growing at that rate (compared with other flex items).
+  - `flex-shrink`: describes how to handle sizing if the width is going below the basis -- 0 or 1 for whether it can shrink smaller than its `flex-basis`.
+  - `flex-basis`: base size for the item, e.g. `auto` or `0`.
+  - Shorthand all 3 to `flex` with 3 values, or the predefined values of `initial`(default), `auto`(stretches to fill the container with uneven size), `1`(stretches to fill the container evenly sized, or a number larger than 1 for uneven growth rate) or `none`.
 
 ## Grid
 - `display: grid` to parent. The parent is a grid container, and direct children are grid items.
