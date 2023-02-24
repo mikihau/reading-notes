@@ -163,3 +163,5 @@ html {
 ## Sizing
 - Intrinsic size: the natural size of things, e.g. an image, a block-level element (should stretch horizontally to the width of the container).
 - Extrinsic size: explicitly setting `height` and `width` -- but content may overflow.
+- To counteract overflow, you can specify `min-height`/`min-width`.
+- [responsiveness] `max-width/height` is useful to limit the image size so that the image doesn't stretch on a smaller screen.
