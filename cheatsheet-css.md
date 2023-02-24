@@ -23,6 +23,7 @@ html {
   - `inline-block` works like `block`, but does not break into a new line;
   - it can also dictate how it's children behaves, by setting `display` to `grid` or `flex` (see layout).
 - `Margin` values can be positive or negative; they may collapse by taking the max (if both positive), min (if both negative), or subtract (one of them negative), given additional margin collapsing rules.
+- For shorthand of two values for a position, the first one is horizontal, and the second one is vertical.
 
 # Selectors
 ## Simple
@@ -144,13 +145,21 @@ html {
 ## Color
 - Hex (0-9 and a-f) -- each two digits run from 0-255 for red, green and blue: `#000000` (pure black), and `#00000080` (black with 50% alpha), `#000000BF` (black with 75% alpha).
 - RGB (red, green, blue): `rgb(183 21 64)` (0-255) or `rgb(0%, 0%, 0%)` (0%-100%); `rgb(0 0 0 / 50%)` or `rgba(0, 0, 0, 50%)` for alpha. Space delimiter is newer than comma delimiter.
-- HSL (Hue, Saturation, Lightness): `hsl(40 91% 60%)` -- hue from 0-360 (around the color wheel), saturation from 0%-100% (0% meaning grayscale), lightness from 0%-100% (adding black or white). `hsl(0 0% 0% / 50%)` or `hsl(0 0% 0% / 0.5)` for alpha from 0-1.
+- HSL (Hue, Saturation, Lightness): `hsl(40 91% 60%)` -- hue from 0-360 (around the color wheel), saturation from 0%-100% (0% meaning grayscale), lightness from 0%-100% (adding light, 0% meaning completely black, 100% meaning completely white). `hsl(0 0% 0% / 50%)` or `hsl(0 0% 0% / 0.5)` for alpha from 0-1.
 - Named colors: [all names](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color), `transparent`, and `currentColor` (depending on the computed `color` on the same element, or the cascade).
 - For text, `color`, `text-shadow` and `text-decoration-color` are common properties for coloring. `border-color`, `outline-color`, and `box-shadow` for boxes.
 
-## Sizing, Units
+## Units
 - Ratios, e.g. `line-height: 1.5` means 1.5 times the computed pixel font size of that element.
 - Percentage, e.g. `margin` or `padding` as a percentage means percentage of the parent element's width (regardless of direction).
 - Dimensions: adding a unit to a number.
-  - Absolute: e.g. `cm`, `px`(1/96 of an inch)
-  - Relative: e.g. `em`(based on computed font size of its parent), `ch`(based on the width of the character `0`)
+  - Absolute: e.g. `cm`, `px`(1/96 of an inch).
+  - Relative
+    - font size based: e.g. `em`(based on computed font size of its parent), `ch`(based on the width of the character `0`), `rem` (based on front size of the root element).
+    - view port based: e.g. `vw`(1% of viewport's width) and `vh`, `vi`(1% of viewport on the root element's inline axis) and `vb`(block axis), `vmin`(1% of viewport's smaller dimension) and `vmax`.
+  - Miscellaneous: angle(`deg`, `turn`, `rad`), resolution(`dpi`-- dots per inch)
+- Tip: you can also use `calc` to calculate the computed value, e.g. `calc(20% + 100px)` -- the 20% is based on the width of the parent
+
+## Sizing
+- Intrinsic size: the natural size of things, e.g. an image, a block-level element (should stretch horizontally to the width of the container).
+- Extrinsic size: explicitly setting `height` and `width` -- but content may overflow.
