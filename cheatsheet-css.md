@@ -87,7 +87,7 @@ html {
   - `flex-wrap` for wrapping items: `nowrap`(default), `wrap`. Wrapping creates multiple individual flex lines, and it's not possible to have contents line up on the cross axis -- use grid instead.
   - Use `flex-flow` as a shorthand for `flex-direction` + `flex-wrap`, e.g. `flex-flow: column wrap;`.
   - `align-items`(for height)
-  - `justify-content`
+  - `justify-content`: how to distribute extra space along the main axis -- `flex-start`(default), `flex-end`, `center`, `space-around`, `space-between`, `space-evenly`.
 - Tunable properties for flex items to control space inside:
   - `flex-grow`: 0 for no growing, 1 or more for yes to growing at that rate (compared with other flex items).
   - `flex-shrink`: describes how to handle sizing if the width is going below the basis -- 0 or 1 for whether it can shrink smaller than its `flex-basis`.
