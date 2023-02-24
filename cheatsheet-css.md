@@ -147,3 +147,10 @@ html {
 - HSL (Hue, Saturation, Lightness): `hsl(40 91% 60%)` -- hue from 0-360 (around the color wheel), saturation from 0%-100% (0% meaning grayscale), lightness from 0%-100% (adding black or white). `hsl(0 0% 0% / 50%)` or `hsl(0 0% 0% / 0.5)` for alpha from 0-1.
 - Named colors: [all names](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color), `transparent`, and `currentColor` (depending on the computed `color` on the same element, or the cascade).
 - For text, `color`, `text-shadow` and `text-decoration-color` are common properties for coloring. `border-color`, `outline-color`, and `box-shadow` for boxes.
+
+## Sizing, Units
+- Ratios, e.g. `line-height: 1.5` means 1.5 times the computed pixel font size of that element.
+- Percentage, e.g. `margin` or `padding` as a percentage means percentage of the parent element's width (regardless of direction).
+- Dimensions: adding a unit to a number.
+  - Absolute: e.g. `cm`, `px`(1/96 of an inch)
+  - Relative: e.g. `em`(based on computed font size of its parent), `ch`(based on the width of the character `0`)
