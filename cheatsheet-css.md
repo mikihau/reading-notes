@@ -78,7 +78,9 @@ html {
   - and the main viewport/window.
 
 ## Flexbox
+![Flex Terminology](images/css-flex-terminology.png)
 - `display: flex` to parent, and children becomes flex items -- works well for responsive design.
+- `display: inline-flex` means children are flex items, but the container is an inline element.
 - 1-dimensional (horizontal or vertical with `flex-direction` for `row`(default), `column`, `row-reverse`, and `column-reverse`) layout control. [responsiveness] Careful about reverse since it causes logical ordering to be different from visual ordering.
   - By default children won't wrap -- items will overflow (will shrink to `min-content` before overflowing).
   - Flex items move as a group on the main axis.
@@ -89,12 +91,20 @@ html {
   - `justify-content`: how to distribute extra space along the main axis -- `flex-start`(default), `flex-end`, `center`, `space-around`, `space-between`, `space-evenly`.
   - `align-content`: how to distribute extra space between flex lines -- same values with `justify-content`, but default to `stretch`.
   - `place-content`: shorthand for `align-content` and `justify-content`.
-  - `align-items`(for height)
+  - `align-items`: align your items within the flex line on the cross axis (`align-self` for individual flex items), default to `stretch`.
 - Tunable properties for flex items to control space inside:
   - `flex-grow`: 0 for no growing, 1 or more for yes to growing at that rate (compared with other flex items).
   - `flex-shrink`: describes how to handle sizing if the width is going below the basis -- 0 or 1 for whether it can shrink smaller than its `flex-basis`.
   - `flex-basis`: base size for the item, e.g. `auto` or `0`.
   - Shorthand all 3 to `flex` with 3 values, or the predefined values of `initial`(default), `auto`(stretches to fill the container with uneven size), `1`(stretches to fill the container evenly sized, or a number larger than 1 for uneven growth rate) or `none`.
+- A trick to center an item vertically and horizontally inside a container: by switching the container into a flexbox, and do:
+```css
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+```
 
 ## Grid
 - `display: grid` to parent. The parent is a grid container, and direct children are grid items.
