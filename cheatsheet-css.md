@@ -88,15 +88,15 @@ html {
 - Some tunable properties for parent: 
   - `flex-wrap` for wrapping items: `nowrap`(default), `wrap`. Wrapping creates multiple individual flex lines, and it's not possible to have contents line up on the cross axis -- use grid instead.
   - Use `flex-flow` as a shorthand for `flex-direction` + `flex-wrap`, e.g. `flex-flow: column wrap;`.
-  - `justify-content`: how to distribute extra space along the main axis -- `flex-start`(default), `flex-end`, `center`, `space-around`, `space-between`, `space-evenly`.
+  - `justify-content`: how to distribute extra space along the main axis -- `flex-start`(default), `flex-end`, `center`, `space-around`, `space-between`, `space-evenly`. `justify-items` is ignored in flex layouts.
   - `align-content`: how to distribute extra space between flex lines -- same values with `justify-content`, but default to `stretch`.
   - `place-content`: shorthand for `align-content` and `justify-content`.
   - `align-items`: align your items within the flex line on the cross axis (`align-self` for individual flex items), default to `stretch`.
 - Tunable properties for flex items to control space inside:
   - `flex-grow`: 0 for no growing, 1 or more for yes to growing at that rate (compared with other flex items).
   - `flex-shrink`: describes how to handle sizing if the width is going below the basis -- 0 or 1 for whether it can shrink smaller than its `flex-basis`.
-  - `flex-basis`: base size for the item, e.g. `auto` or `0`.
-  - Shorthand all 3 to `flex` with 3 values, or the predefined values of `initial`(default), `auto`(stretches to fill the container with uneven size), `1`(stretches to fill the container evenly sized, or a number larger than 1 for uneven growth rate) or `none`.
+  - `flex-basis`: base size for the item -- gives the item a minimum size, e.g. `auto` or `0` or `200px`. `flex-grow` is then applied to grow.
+  - Shorthand all 3 to `flex` with 3 values, or the predefined values of `initial`(default), `auto`(stretches to fill the container with uneven size), `1`(stretches to fill the container evenly sized, or a number larger than 1 for uneven growth rate) or `none`. You can also write 2 values (e.g. `flex: 1 200px;`) for `flex-grow` + `flex-basis`.
 - A trick to center an item vertically and horizontally inside a container: by switching the container into a flexbox, and do:
 ```css
 .container {
