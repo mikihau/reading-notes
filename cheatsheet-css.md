@@ -105,6 +105,7 @@ html {
   align-items: center;
 }
 ```
+- You can set a flex item to `display: flex` to create nested flexboxes.
 
 ## Grid
 - `display: grid` to parent. The parent is a grid container, and direct children are grid items.
