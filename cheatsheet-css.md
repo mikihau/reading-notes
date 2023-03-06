@@ -165,6 +165,10 @@ html {
   - `sticky`: acts like `position: relative` until it hits the defined offset from the viewport, then acts like `position:fixed`.
 - The `table` layout can be used on some non-table elements as well by setting `display: table` -- but don't use `table` for layout with modern browsers.
 
+# Animations
+- Svg: viewport -- the area which the user can see the image; if image overflows out of the viewport, it'll be cropped. Set by `<svg width="100%" height="300px">`.
+- Svg: viewbox -- position and scale the image itself, similar to pan and zoom. Set with `viewBox="min-x min-y width height"`, e.g. `<svg viewBox="0 0 710 300" width="100%" height="300px">`.
+
 # Miscellaneous
 ## Color
 - Hex (0-9 and a-f) -- each two digits run from 0-255 for red, green and blue: `#000000` (pure black), and `#00000080` (black with 50% alpha), `#000000BF` (black with 75% alpha).
@@ -189,3 +193,4 @@ html {
 - Extrinsic size: explicitly setting `height` and `width` -- but content may overflow.
 - To counteract overflow, you can specify `min-height`/`min-width`.
 - [responsiveness] `max-width/height` is useful to limit the image size so that the image doesn't stretch on a smaller screen.
+
