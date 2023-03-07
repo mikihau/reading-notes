@@ -168,6 +168,29 @@ html {
 # Animations
 - Svg: viewport -- the area which the user can see the image; if image overflows out of the viewport, it'll be cropped. Set by `<svg width="100%" height="300px">`.
 - Svg: viewbox -- position and scale the image itself, similar to pan and zoom. Set with `viewBox="min-x min-y width height"`, e.g. `<svg viewBox="0 0 710 300" width="100%" height="300px">`.
+- Defining an animation
+```css
+@keyframes <name1> {
+  from { <css statement, e.g. background:blue> }
+  50% { <css statement> }
+  to { <css statement> }
+}
+
+<selector> {
+  animation-name: name1, name2, ...;
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
+  animation-delay: 200ms;
+  transform-origin: center;
+}
+```
+- The `tranform` property takes a [transform function](https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function) to change the appearence of an element without affecting other elements around it.
+- Reduced motion query for accessibility -- can emulate this preference via brower tools.
+```css
+@media (prefers-reduced-motion: reduce) {
+ rect { animation: none; }
+} 
+```
 
 # Miscellaneous
 ## Color
