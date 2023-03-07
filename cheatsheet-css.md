@@ -171,9 +171,9 @@ html {
 - Defining an animation
 ```css
 @keyframes <name1> {
-  from { <css statement, e.g. background:blue> }
+  from { <css statement, e.g. background:blue> } // "from" can be replaced by "0%"
   50% { <css statement> }
-  to { <css statement> }
+  to { <css statement> } // "to" can be replaced by "100%"
 }
 
 <selector> {
@@ -184,6 +184,15 @@ html {
   transform-origin: center;
 }
 ```
+- The `animation` shorthand is a combination of 8 properties -- lots of them can be omitted though:
+  - `animation-name`
+  - `animation-duration`: measured in s or ms
+  - `animation-timing-function`
+  - `animation-delay`
+  - `animation-iteration-count`
+  - `animation-direction`
+  - `animation-fill-mode`
+  - `animation-play-state`
 - The `tranform` property takes a [transform function](https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function) to change the appearence of an element without affecting other elements around it.
 - Reduced motion query for accessibility -- can emulate this preference via brower tools.
 ```css
