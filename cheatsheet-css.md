@@ -217,3 +217,5 @@ html {
 - To counteract overflow, you can specify `min-height`/`min-width`.
 - [responsiveness] `max-width/height` is useful to limit the image size so that the image doesn't stretch on a smaller screen.
 
+## Vendor Prefixed Properties
+- Usually have experimental and non-standard features. `-moz-` for firefox, `-webkit` for pretty much every other browser.
