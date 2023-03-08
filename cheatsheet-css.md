@@ -187,13 +187,13 @@ html {
 - The `animation` shorthand is a combination of 8 properties -- lots of them can be omitted though:
   - `animation-name`
   - `animation-duration`: measured in s or ms
-  - `animation-timing-function`
-  - `animation-delay`
-  - `animation-iteration-count`
-  - `animation-direction`
-  - `animation-fill-mode`
-  - `animation-play-state`
-- The `tranform` property takes a [transform function](https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function) to change the appearence of an element without affecting other elements around it.
+  - `animation-timing-function`: popular ones are `cubic-bezier()`, `steps()`, and named timing functions (linear, ease, ease-in, ease-out, ease-in-out)
+  - `animation-delay`: s or ms
+  - `animation-iteration-count`: number or infinite
+  - `animation-direction`: normal, reverse, alternate (forward + backward), alternate-reverse
+  - `animation-fill-mode`: which values to persist before the animation starts or after it ends -- none, forwards, backwards, both
+  - `animation-play-state`: running or paused
+- The `tranform` property takes a [transform function](https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function) to change the appearence of an element without affecting other elements around it. E.g. `transform: scaleX(1.8);`
 - Reduced motion query for accessibility -- can emulate this preference via brower tools.
 ```css
 @media (prefers-reduced-motion: reduce) {
